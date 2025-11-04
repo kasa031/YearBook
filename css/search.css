@@ -33,9 +33,10 @@
 }
 
 .results-count {
-    color: var(--text-light);
+    color: var(--text-dark);
     margin-bottom: 1.5rem;
     font-size: 1.1rem;
+    font-weight: 500;
 }
 
 .results-grid {
@@ -153,7 +154,7 @@
     padding: 3rem;
     background: var(--white);
     border-radius: 12px;
-    color: var(--text-light);
+    color: var(--text-dark);
 }
 
 .no-results a {
@@ -205,7 +206,7 @@
 
 .page-dots {
     padding: 0.5rem;
-    color: var(--text-light);
+    color: var(--text-dark);
 }
 
 /* Search History */
@@ -230,9 +231,10 @@
     background: var(--okra-cream);
     border-radius: 15px;
     font-size: 0.85rem;
-    color: var(--text-light);
+    color: var(--text-dark);
     cursor: pointer;
     transition: all 0.3s ease;
+    font-weight: 500;
 }
 
 .history-item:hover {
