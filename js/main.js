@@ -1,5 +1,5 @@
 // User Authentication
-const currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+const currentUser = safeParseJSON('currentUser', null);
 
 // Check if user is logged in
 function checkAuth() {

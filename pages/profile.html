@@ -58,6 +58,13 @@
                             <span id="memberSince"></span>
                         </div>
                     </div>
+                    
+                    <div class="profile-actions">
+                        <button class="btn-export" onclick="exportUserData(currentUser.id)">📥 Export My Data</button>
+                        <label for="importFile" class="btn-import">📤 Import Data
+                            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImport(event)">
+                        </label>
+                    </div>
 
                     <div class="profile-tabs">
                         <button class="tab-btn active" data-tab="uploads">My Uploads</button>
@@ -96,7 +103,9 @@
         </div>
     </footer>
 
+    <script src="../js/utils.js"></script>
     <script src="../js/data.js"></script>
+    <script src="../js/backup.js"></script>
     <script src="../js/shared.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/profile.js"></script>

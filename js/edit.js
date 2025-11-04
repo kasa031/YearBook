@@ -4,27 +4,10 @@ const uploadId = urlParams.get('id');
 let selectedTags = [];
 let currentUpload = null;
 
-// Toast notification system
-function showToast(message, type = 'info') {
-    const existingToasts = document.querySelectorAll('.toast');
-    existingToasts.forEach(toast => toast.remove());
-    
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => toast.classList.add('show'), 10);
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
+// showToast is now in utils.js - no need to redefine
 
 document.addEventListener('DOMContentLoaded', () => {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const currentUser = safeParseJSON('currentUser', null);
     
     if (!currentUser) {
         window.location.href = 'login.html';
@@ -96,16 +79,15 @@ function updateTagsDisplay() {
     const tagsDisplay = document.getElementById('tagsDisplay');
     tagsDisplay.innerHTML = '';
     selectedTags.forEach((tag, index) => {
-        const tagItem = document.createElement('div');
-        tagItem.className = 'tag-item';
-        tagItem.innerHTML = `
-            <span>${tag}</span>
-            <span class="tag-remove" data-index="${index}">×</span>
-        `;
-        tagItem.querySelector('.tag-remove').addEventListener('click', () => {
+        const tagItem = createSafeElement('div', 'tag-item');
+        const tagSpan = createSafeElement('span', '', escapeHTML(tag));
+        const removeSpan = createSafeElement('span', 'tag-remove', '×');
+        removeSpan.addEventListener('click', () => {
             selectedTags.splice(index, 1);
             updateTagsDisplay();
         });
+        tagItem.appendChild(tagSpan);
+        tagItem.appendChild(removeSpan);
         tagsDisplay.appendChild(tagItem);
     });
 }

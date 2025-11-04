@@ -36,7 +36,7 @@ fileInput.addEventListener('change', (e) => {
     }
 });
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+// MAX_FILE_SIZE is now in CONSTANTS
 
 function compressImage(file, maxWidth = 1920, quality = 0.8) {
     return new Promise((resolve, reject) => {
@@ -83,8 +83,8 @@ async function handleFileSelect(file) {
         return;
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-        showToast('File is too large. Maximum size is 10MB. Compressing...', 'info');
+    if (file.size > CONSTANTS.MAX_FILE_SIZE) {
+        showToast(`File is too large. Maximum size is ${CONSTANTS.MAX_FILE_SIZE / (1024 * 1024)}MB. Compressing...`, 'info');
     }
 
     imageFile = file;
@@ -92,7 +92,7 @@ async function handleFileSelect(file) {
     try {
         // Compress image if it's large
         let dataUrl;
-        if (file.size > 2 * 1024 * 1024) { // Compress if > 2MB
+        if (file.size > CONSTANTS.COMPRESSION_THRESHOLD) {
             showToast('Compressing image...', 'info');
             dataUrl = await compressImage(file);
         } else {
@@ -109,7 +109,7 @@ async function handleFileSelect(file) {
         previewImage.classList.remove('hidden');
         uploadPlaceholder.classList.add('hidden');
         
-        if (file.size > 2 * 1024 * 1024) {
+        if (file.size > CONSTANTS.COMPRESSION_THRESHOLD) {
             showToast('Image compressed successfully', 'success');
         }
     } catch (error) {
@@ -137,16 +137,15 @@ tagInput.addEventListener('keypress', (e) => {
 function updateTagsDisplay() {
     tagsDisplay.innerHTML = '';
     selectedTags.forEach((tag, index) => {
-        const tagItem = document.createElement('div');
-        tagItem.className = 'tag-item';
-        tagItem.innerHTML = `
-            <span>${tag}</span>
-            <span class="tag-remove" data-index="${index}">×</span>
-        `;
-        tagItem.querySelector('.tag-remove').addEventListener('click', () => {
+        const tagItem = createSafeElement('div', 'tag-item');
+        const tagSpan = createSafeElement('span', '', escapeHTML(tag));
+        const removeSpan = createSafeElement('span', 'tag-remove', '×');
+        removeSpan.addEventListener('click', () => {
             selectedTags.splice(index, 1);
             updateTagsDisplay();
         });
+        tagItem.appendChild(tagSpan);
+        tagItem.appendChild(removeSpan);
         tagsDisplay.appendChild(tagItem);
     });
 }
@@ -166,7 +165,7 @@ if (uploadForm) {
         }
         
         // Check if user is logged in
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const currentUser = safeParseJSON('currentUser', null);
         if (!currentUser) {
             if (btnSubmit) {
                 btnSubmit.disabled = false;
@@ -210,13 +209,23 @@ if (uploadForm) {
             imageUrl: imageDataUrl // Store as base64 for now
         };
 
+        // Rate limiting
+        const rateLimit = checkRateLimit('upload', currentUser.id, CONSTANTS.RATE_LIMIT_UPLOADS);
+        if (!rateLimit.allowed) {
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Upload Memory';
+            }
+            showToast(rateLimit.message, 'error');
+            return;
+        }
+        
         // Simulate upload delay for better UX
         setTimeout(() => {
-            try {
-                saveUpload(uploadData);
-                const messageDiv = document.getElementById('uploadMessage');
-                messageDiv.className = 'success-message show';
-                messageDiv.textContent = 'Upload successful! Your memory has been saved. Redirecting...';
+            const result = saveUpload(uploadData);
+            
+            if (result.success) {
+                showToast('Upload successful! Your memory has been saved. Redirecting...', 'success');
                 
                 // Reset form
                 uploadForm.reset();
@@ -230,14 +239,13 @@ if (uploadForm) {
                 setTimeout(() => {
                     window.location.href = 'search.html';
                 }, 2000);
-            } catch (error) {
+            } else {
                 if (btnSubmit) {
                     btnSubmit.disabled = false;
                     btnSubmit.textContent = 'Upload Memory';
                 }
-                const messageDiv = document.getElementById('uploadMessage');
-                messageDiv.className = 'error-message show';
-                messageDiv.textContent = 'Upload failed. Please try again.';
+                const errorMsg = result.errors ? result.errors.join(', ') : (result.error || 'Upload failed. Please try again.');
+                showToast(errorMsg, 'error');
             }
         }, 500);
     });

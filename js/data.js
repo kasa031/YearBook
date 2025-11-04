@@ -12,20 +12,20 @@ const ADMIN_EMAIL = 'admin@yearbook.com';
 
 // Initialize storage if empty
 function initStorage() {
-    if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
-        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify([]));
+    if (!safeParseJSON(STORAGE_KEYS.USERS, null)) {
+        safeSetItem(STORAGE_KEYS.USERS, []);
     }
-    if (!localStorage.getItem(STORAGE_KEYS.UPLOADS)) {
-        localStorage.setItem(STORAGE_KEYS.UPLOADS, JSON.stringify([]));
+    if (!safeParseJSON(STORAGE_KEYS.UPLOADS, null)) {
+        safeSetItem(STORAGE_KEYS.UPLOADS, []);
     }
-    if (!localStorage.getItem(STORAGE_KEYS.REPORTS)) {
-        localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify([]));
+    if (!safeParseJSON(STORAGE_KEYS.REPORTS, null)) {
+        safeSetItem(STORAGE_KEYS.REPORTS, []);
     }
-    if (!localStorage.getItem(STORAGE_KEYS.FAVORITES)) {
-        localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify([]));
+    if (!safeParseJSON(STORAGE_KEYS.FAVORITES, null)) {
+        safeSetItem(STORAGE_KEYS.FAVORITES, []);
     }
-    if (!localStorage.getItem(STORAGE_KEYS.SEARCH_HISTORY)) {
-        localStorage.setItem(STORAGE_KEYS.SEARCH_HISTORY, JSON.stringify([]));
+    if (!safeParseJSON(STORAGE_KEYS.SEARCH_HISTORY, null)) {
+        safeSetItem(STORAGE_KEYS.SEARCH_HISTORY, []);
     }
 }
 
@@ -36,8 +36,19 @@ function isAdmin(user) {
 
 // User functions
 function registerUser(username, email, password) {
+    // Validation
+    if (!validateUsername(username)) {
+        return { success: false, message: `Username must be ${CONSTANTS.MIN_USERNAME_LENGTH}-${CONSTANTS.MAX_USERNAME_LENGTH} characters and contain only letters, numbers, and underscores` };
+    }
+    if (!validateEmail(email)) {
+        return { success: false, message: 'Invalid email address' };
+    }
+    if (!validatePassword(password)) {
+        return { success: false, message: `Password must be at least ${CONSTANTS.MIN_PASSWORD_LENGTH} characters` };
+    }
+    
     initStorage();
-    const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS));
+    const users = safeParseJSON(STORAGE_KEYS.USERS, []);
     
     // Check if user already exists
     if (users.find(u => u.email === email || u.username === username)) {
@@ -46,26 +57,33 @@ function registerUser(username, email, password) {
 
     const newUser = {
         id: Date.now().toString(),
-        username,
-        email,
+        username: username.trim(),
+        email: email.trim().toLowerCase(),
         password, // In production, hash this!
         createdAt: new Date().toISOString()
     };
 
     users.push(newUser);
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    const result = safeSetItem(STORAGE_KEYS.USERS, users);
+    if (!result.success) {
+        return { success: false, message: result.error || 'Failed to save user' };
+    }
     
     return { success: true, user: newUser };
 }
 
 function loginUser(email, password) {
+    if (!validateEmail(email)) {
+        return { success: false, message: 'Invalid email address' };
+    }
+    
     initStorage();
-    const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS));
-    const user = users.find(u => u.email === email && u.password === password);
+    const users = safeParseJSON(STORAGE_KEYS.USERS, []);
+    const user = users.find(u => u.email === email.trim().toLowerCase() && u.password === password);
     
     if (user) {
         const { password: _, ...userWithoutPassword } = user;
-        localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
+        safeSetItem('currentUser', userWithoutPassword);
         return { success: true, user: userWithoutPassword };
     }
     
@@ -74,25 +92,43 @@ function loginUser(email, password) {
 
 // Upload functions
 function saveUpload(uploadData) {
+    // Validation
+    const validation = validateSchoolData(uploadData);
+    if (!validation.valid) {
+        return { success: false, errors: validation.errors };
+    }
+    
     initStorage();
-    const uploads = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOADS));
+    const uploads = safeParseJSON(STORAGE_KEYS.UPLOADS, []);
+    const currentUser = safeParseJSON('currentUser', null);
     
     const newUpload = {
         id: Date.now().toString(),
-        ...uploadData,
+        schoolName: uploadData.schoolName.trim(),
+        city: uploadData.city.trim(),
+        country: uploadData.country.trim(),
+        year: parseInt(uploadData.year),
+        grade: uploadData.grade ? uploadData.grade.trim() : null,
+        description: uploadData.description ? uploadData.description.trim() : null,
+        tags: uploadData.tags || [],
+        imageUrl: uploadData.imageUrl,
         uploadedAt: new Date().toISOString(),
-        uploadedBy: JSON.parse(localStorage.getItem('currentUser'))?.id || 'anonymous'
+        uploadedBy: currentUser?.id || 'anonymous',
+        viewCount: 0
     };
 
     uploads.push(newUpload);
-    localStorage.setItem(STORAGE_KEYS.UPLOADS, JSON.stringify(uploads));
+    const result = safeSetItem(STORAGE_KEYS.UPLOADS, uploads);
+    if (!result.success) {
+        return { success: false, error: result.error || 'Failed to save upload' };
+    }
     
-    return newUpload;
+    return { success: true, upload: newUpload };
 }
 
 function getUploads(filters = {}) {
     initStorage();
-    let uploads = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOADS));
+    let uploads = safeParseJSON(STORAGE_KEYS.UPLOADS, []);
 
     // Apply filters
     if (filters.school) {
@@ -144,15 +180,22 @@ function getUploads(filters = {}) {
 
 function getUploadById(id) {
     initStorage();
-    const uploads = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOADS));
+    const uploads = safeParseJSON(STORAGE_KEYS.UPLOADS, []);
     return uploads.find(u => u.id === id);
 }
 
 // Report functions
 function reportUpload(uploadId, reason, description) {
+    // Rate limiting
+    const currentUser = safeParseJSON('currentUser', null);
+    const userId = currentUser?.id || 'anonymous';
+    const rateLimit = checkRateLimit('report', userId, CONSTANTS.RATE_LIMIT_REPORTS);
+    if (!rateLimit.allowed) {
+        return { success: false, message: rateLimit.message };
+    }
+    
     initStorage();
-    const reports = JSON.parse(localStorage.getItem(STORAGE_KEYS.REPORTS));
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const reports = safeParseJSON(STORAGE_KEYS.REPORTS, []);
     
     // Check if user already reported this upload
     const existingReport = reports.find(r => 
@@ -178,14 +221,17 @@ function reportUpload(uploadId, reason, description) {
     };
     
     reports.push(newReport);
-    localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(reports));
+    const result = safeSetItem(STORAGE_KEYS.REPORTS, reports);
+    if (!result.success) {
+        return { success: false, message: result.error || 'Failed to save report' };
+    }
     
     return { success: true, report: newReport };
 }
 
 function getReports(status = null) {
     initStorage();
-    let reports = JSON.parse(localStorage.getItem(STORAGE_KEYS.REPORTS));
+    let reports = safeParseJSON(STORAGE_KEYS.REPORTS, []);
     
     if (status) {
         reports = reports.filter(r => r.status === status);
@@ -197,20 +243,23 @@ function getReports(status = null) {
 
 function getReportById(id) {
     initStorage();
-    const reports = JSON.parse(localStorage.getItem(STORAGE_KEYS.REPORTS));
+    const reports = safeParseJSON(STORAGE_KEYS.REPORTS, []);
     return reports.find(r => r.id === id);
 }
 
 function updateReportStatus(reportId, status, reviewedBy) {
     initStorage();
-    const reports = JSON.parse(localStorage.getItem(STORAGE_KEYS.REPORTS));
+    const reports = safeParseJSON(STORAGE_KEYS.REPORTS, []);
     const report = reports.find(r => r.id === reportId);
     
     if (report) {
         report.status = status;
         report.reviewedBy = reviewedBy;
         report.reviewedAt = new Date().toISOString();
-        localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(reports));
+        const result = safeSetItem(STORAGE_KEYS.REPORTS, reports);
+        if (!result.success) {
+            return { success: false, message: result.error || 'Failed to update report' };
+        }
         return { success: true, report };
     }
     
@@ -219,31 +268,49 @@ function updateReportStatus(reportId, status, reviewedBy) {
 
 function deleteUpload(uploadId) {
     initStorage();
-    const uploads = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOADS));
+    const uploads = safeParseJSON(STORAGE_KEYS.UPLOADS, []);
     const filtered = uploads.filter(u => u.id !== uploadId);
-    localStorage.setItem(STORAGE_KEYS.UPLOADS, JSON.stringify(filtered));
+    const result = safeSetItem(STORAGE_KEYS.UPLOADS, filtered);
+    if (!result.success) {
+        return { success: false, message: result.error || 'Failed to delete upload' };
+    }
     
     // Also remove from favorites
-    const favorites = JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES)) || [];
+    const favorites = safeParseJSON(STORAGE_KEYS.FAVORITES, []);
     const filteredFavorites = favorites.filter(f => f.uploadId !== uploadId);
-    localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(filteredFavorites));
+    safeSetItem(STORAGE_KEYS.FAVORITES, filteredFavorites);
     
     return { success: true };
 }
 
 // Update upload function
 function updateUpload(uploadId, updatedData) {
+    // Validation
+    const validation = validateSchoolData(updatedData);
+    if (!validation.valid) {
+        return { success: false, errors: validation.errors };
+    }
+    
     initStorage();
-    const uploads = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOADS));
+    const uploads = safeParseJSON(STORAGE_KEYS.UPLOADS, []);
     const index = uploads.findIndex(u => u.id === uploadId);
     
     if (index !== -1) {
         uploads[index] = { 
-            ...uploads[index], 
-            ...updatedData, 
+            ...uploads[index],
+            schoolName: updatedData.schoolName.trim(),
+            city: updatedData.city.trim(),
+            country: updatedData.country.trim(),
+            year: parseInt(updatedData.year),
+            grade: updatedData.grade ? updatedData.grade.trim() : null,
+            description: updatedData.description ? updatedData.description.trim() : null,
+            tags: updatedData.tags || [],
             updatedAt: new Date().toISOString() 
         };
-        localStorage.setItem(STORAGE_KEYS.UPLOADS, JSON.stringify(uploads));
+        const result = safeSetItem(STORAGE_KEYS.UPLOADS, uploads);
+        if (!result.success) {
+            return { success: false, message: result.error || 'Failed to update upload' };
+        }
         return { success: true, upload: uploads[index] };
     }
     
@@ -259,7 +326,7 @@ function canEditUpload(uploadId, userId) {
 // Favorites functions
 function addFavorite(uploadId, userId) {
     initStorage();
-    const favorites = JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES)) || [];
+    const favorites = safeParseJSON(STORAGE_KEYS.FAVORITES, []);
     
     if (!favorites.find(f => f.uploadId === uploadId && f.userId === userId)) {
         favorites.push({ 
@@ -267,7 +334,10 @@ function addFavorite(uploadId, userId) {
             userId, 
             addedAt: new Date().toISOString() 
         });
-        localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favorites));
+        const result = safeSetItem(STORAGE_KEYS.FAVORITES, favorites);
+        if (!result.success) {
+            return { success: false, message: result.error || 'Failed to add favorite' };
+        }
         return { success: true };
     }
     
@@ -276,39 +346,42 @@ function addFavorite(uploadId, userId) {
 
 function removeFavorite(uploadId, userId) {
     initStorage();
-    const favorites = JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES)) || [];
+    const favorites = safeParseJSON(STORAGE_KEYS.FAVORITES, []);
     const filtered = favorites.filter(f => !(f.uploadId === uploadId && f.userId === userId));
-    localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(filtered));
+    const result = safeSetItem(STORAGE_KEYS.FAVORITES, filtered);
+    if (!result.success) {
+        return { success: false, message: result.error || 'Failed to remove favorite' };
+    }
     return { success: true };
 }
 
 function isFavorited(uploadId, userId) {
     initStorage();
-    const favorites = JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES)) || [];
+    const favorites = safeParseJSON(STORAGE_KEYS.FAVORITES, []);
     return favorites.some(f => f.uploadId === uploadId && f.userId === userId);
 }
 
 function getFavorites(userId) {
     initStorage();
-    const favorites = JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES)) || [];
+    const favorites = safeParseJSON(STORAGE_KEYS.FAVORITES, []);
     return favorites.filter(f => f.userId === userId).map(f => f.uploadId);
 }
 
 function getFavoriteUploads(userId) {
     const favoriteIds = getFavorites(userId);
-    const uploads = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOADS)) || [];
+    const uploads = safeParseJSON(STORAGE_KEYS.UPLOADS, []);
     return uploads.filter(u => favoriteIds.includes(u.id));
 }
 
 // View count function
 function incrementViewCount(uploadId) {
     initStorage();
-    const uploads = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOADS));
+    const uploads = safeParseJSON(STORAGE_KEYS.UPLOADS, []);
     const upload = uploads.find(u => u.id === uploadId);
     
     if (upload) {
         upload.viewCount = (upload.viewCount || 0) + 1;
-        localStorage.setItem(STORAGE_KEYS.UPLOADS, JSON.stringify(uploads));
+        safeSetItem(STORAGE_KEYS.UPLOADS, uploads);
         return upload.viewCount;
     }
     
@@ -318,35 +391,35 @@ function incrementViewCount(uploadId) {
 // Search history functions
 function saveSearchHistory(searchParams) {
     initStorage();
-    const history = JSON.parse(localStorage.getItem(STORAGE_KEYS.SEARCH_HISTORY)) || [];
+    const history = safeParseJSON(STORAGE_KEYS.SEARCH_HISTORY, []);
     history.unshift({
         ...searchParams,
         searchedAt: new Date().toISOString()
     });
-    // Keep only last 10 searches
-    const limited = history.slice(0, 10);
-    localStorage.setItem(STORAGE_KEYS.SEARCH_HISTORY, JSON.stringify(limited));
+    // Keep only last searches
+    const limited = history.slice(0, CONSTANTS.MAX_SEARCH_HISTORY);
+    safeSetItem(STORAGE_KEYS.SEARCH_HISTORY, limited);
 }
 
 function getSearchHistory() {
     initStorage();
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.SEARCH_HISTORY)) || [];
+    return safeParseJSON(STORAGE_KEYS.SEARCH_HISTORY, []);
 }
 
 // Get autocomplete suggestions
 function getAutocompleteSuggestions(query, field = 'school') {
     initStorage();
-    const uploads = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOADS)) || [];
+    const uploads = safeParseJSON(STORAGE_KEYS.UPLOADS, []);
     
     if (field === 'school') {
         const schools = [...new Set(uploads.map(u => u.schoolName).filter(Boolean))];
-        return schools.filter(s => s.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
+        return schools.filter(s => s.toLowerCase().includes(query.toLowerCase())).slice(0, CONSTANTS.MAX_AUTOCOMPLETE_RESULTS);
     } else if (field === 'city') {
         const cities = [...new Set(uploads.map(u => u.city).filter(Boolean))];
-        return cities.filter(c => c.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
+        return cities.filter(c => c.toLowerCase().includes(query.toLowerCase())).slice(0, CONSTANTS.MAX_AUTOCOMPLETE_RESULTS);
     } else if (field === 'country') {
         const countries = [...new Set(uploads.map(u => u.country).filter(Boolean))];
-        return countries.filter(c => c.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
+        return countries.filter(c => c.toLowerCase().includes(query.toLowerCase())).slice(0, CONSTANTS.MAX_AUTOCOMPLETE_RESULTS);
     }
     
     return [];

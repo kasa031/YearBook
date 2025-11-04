@@ -171,7 +171,7 @@ function initFavoriteFunctionality(uploadId) {
     const favoriteBtn = document.getElementById('favoriteBtn');
     if (!favoriteBtn) return;
     
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const currentUser = safeParseJSON('currentUser', null);
     if (!currentUser) {
         favoriteBtn.style.display = 'none';
         return;
@@ -195,10 +195,10 @@ function initFavoriteFunctionality(uploadId) {
 
 function updateFavoriteButton(btn, isFavorite) {
     if (isFavorite) {
-        btn.innerHTML = '❤️ Favorited';
+        btn.textContent = '❤️ Favorited';
         btn.classList.add('favorited');
     } else {
-        btn.innerHTML = '🤍 Add to Favorites';
+        btn.textContent = '🤍 Add to Favorites';
         btn.classList.remove('favorited');
     }
 }
@@ -256,7 +256,7 @@ function copyPostLink(uploadId) {
 
 // Edit/Delete functionality
 function initEditDeleteFunctionality(uploadId) {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const currentUser = safeParseJSON('currentUser', null);
     if (!currentUser) return;
     
     const canEdit = canEditUpload(uploadId, currentUser.id);
@@ -293,7 +293,7 @@ function initNavigationFunctionality(uploadId) {
     const nextBtn = document.getElementById('nextBtn');
     
     // Get current search context from sessionStorage or URL
-    const searchFilters = JSON.parse(sessionStorage.getItem('lastSearchFilters')) || {};
+    const searchFilters = JSON.parse(sessionStorage.getItem('lastSearchFilters') || '{}');
     const allPosts = getUploads(searchFilters);
     const sortedPosts = sortResults(allPosts, 'date');
     const currentIndex = sortedPosts.findIndex(p => p.id === uploadId);
@@ -313,25 +313,5 @@ function initNavigationFunctionality(uploadId) {
     }
 }
 
-// Toast notification system
-function showToast(message, type = 'info') {
-    // Remove existing toasts
-    const existingToasts = document.querySelectorAll('.toast');
-    existingToasts.forEach(toast => toast.remove());
-    
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    
-    document.body.appendChild(toast);
-    
-    // Trigger animation
-    setTimeout(() => toast.classList.add('show'), 10);
-    
-    // Remove after delay
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
+// showToast is now in utils.js - no need to redefine
 

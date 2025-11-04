@@ -39,9 +39,21 @@ if (registerForm) {
             return;
         }
 
-        if (password.length < 6) {
+        if (!validatePassword(password)) {
             messageDiv.className = 'error-message show';
-            messageDiv.textContent = 'Password must be at least 6 characters';
+            messageDiv.textContent = `Password must be at least ${CONSTANTS.MIN_PASSWORD_LENGTH} characters`;
+            return;
+        }
+        
+        if (!validateUsername(username)) {
+            messageDiv.className = 'error-message show';
+            messageDiv.textContent = `Username must be ${CONSTANTS.MIN_USERNAME_LENGTH}-${CONSTANTS.MAX_USERNAME_LENGTH} characters and contain only letters, numbers, and underscores`;
+            return;
+        }
+        
+        if (!validateEmail(email)) {
+            messageDiv.className = 'error-message show';
+            messageDiv.textContent = 'Invalid email address';
             return;
         }
 

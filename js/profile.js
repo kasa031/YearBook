@@ -1,5 +1,8 @@
+// Make currentUser available globally for export button
+let currentUser = null;
+
 document.addEventListener('DOMContentLoaded', () => {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    currentUser = safeParseJSON('currentUser', null);
     const notLoggedIn = document.getElementById('notLoggedIn');
     const profileContent = document.getElementById('profileContent');
 
@@ -31,7 +34,38 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize tabs
     initTabs();
+    
+    // Setup export/import
+    setupBackupRestore();
 });
+
+function setupBackupRestore() {
+    // Export button is handled inline in HTML
+    // Import is handled by handleImport function
+}
+
+function handleImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+        showToast('Please select a valid JSON file', 'error');
+        return;
+    }
+    
+    importUserData(file).then(() => {
+        // Reload data
+        const currentUser = safeParseJSON('currentUser', null);
+        if (currentUser) {
+            loadUserUploads(currentUser.id);
+            loadFavorites(currentUser.id);
+        }
+        // Reset file input
+        event.target.value = '';
+    }).catch(() => {
+        event.target.value = '';
+    });
+}
 
 function initTabs() {
     const tabBtns = document.querySelectorAll('.tab-btn');
@@ -73,7 +107,7 @@ function loadFavorites(userId) {
 
 function loadUserUploads(userId) {
     initStorage();
-    const uploads = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOADS));
+    const uploads = safeParseJSON(STORAGE_KEYS.UPLOADS, []);
     const userUploads = uploads.filter(upload => upload.uploadedBy === userId);
 
     const myUploads = document.getElementById('myUploads');
@@ -93,32 +127,51 @@ function loadUserUploads(userId) {
 }
 
 function createUploadCard(upload) {
-    const card = document.createElement('div');
-    card.className = 'upload-card';
+    const card = createSafeElement('div', 'upload-card');
     
     const imageUrl = upload.imageUrl || '../assets/images/classroom.jpg';
-    const schoolName = upload.schoolName || 'Unknown School';
-    const location = [upload.city, upload.country].filter(Boolean).join(', ') || 'Unknown location';
+    const schoolName = escapeHTML(upload.schoolName || 'Unknown School');
+    const location = escapeHTML([upload.city, upload.country].filter(Boolean).join(', ') || 'Unknown location');
     const year = upload.year || 'Unknown';
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const currentUser = safeParseJSON('currentUser', null);
     const canEdit = currentUser && upload.uploadedBy === currentUser.id;
 
-    card.innerHTML = `
-        <img src="${imageUrl}" alt="${schoolName}" onerror="this.src='../assets/images/classroom.jpg'">
-        <div class="upload-card-info">
-            <h4>${schoolName}</h4>
-            <div class="upload-card-meta">
-                ${location} • ${year}
-                ${upload.viewCount ? ` • ${upload.viewCount} views` : ''}
-            </div>
-            ${canEdit ? `
-                <div class="upload-card-actions">
-                    <button class="btn-edit-small" onclick="event.stopPropagation(); window.location.href='edit.html?id=${upload.id}'">Edit</button>
-                    <button class="btn-delete-small" onclick="event.stopPropagation(); deleteMyPost('${upload.id}')">Delete</button>
-                </div>
-            ` : ''}
-        </div>
-    `;
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.alt = schoolName;
+    img.onerror = function() { this.src = '../assets/images/classroom.jpg'; };
+    
+    const info = createSafeElement('div', 'upload-card-info');
+    const h4 = createSafeElement('h4', '', schoolName);
+    const meta = createSafeElement('div', 'upload-card-meta');
+    meta.textContent = `${location} • ${year}${upload.viewCount ? ` • ${upload.viewCount} views` : ''}`;
+    
+    info.appendChild(h4);
+    info.appendChild(meta);
+    
+    if (canEdit) {
+        const actions = createSafeElement('div', 'upload-card-actions');
+        const editBtn = createSafeElement('button', 'btn-edit-small');
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = (e) => {
+            e.stopPropagation();
+            window.location.href = `edit.html?id=${upload.id}`;
+        };
+        
+        const deleteBtn = createSafeElement('button', 'btn-delete-small');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteMyPost(upload.id);
+        };
+        
+        actions.appendChild(editBtn);
+        actions.appendChild(deleteBtn);
+        info.appendChild(actions);
+    }
+    
+    card.appendChild(img);
+    card.appendChild(info);
 
     card.addEventListener('click', () => {
         window.location.href = `view.html?id=${upload.id}`;
@@ -127,24 +180,7 @@ function createUploadCard(upload) {
     return card;
 }
 
-// Toast notification system
-function showToast(message, type = 'info') {
-    const existingToasts = document.querySelectorAll('.toast');
-    existingToasts.forEach(toast => toast.remove());
-    
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => toast.classList.add('show'), 10);
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
+// showToast is now in utils.js - no need to redefine
 
 function deleteMyPost(uploadId) {
     if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
@@ -154,9 +190,11 @@ function deleteMyPost(uploadId) {
     const result = deleteUpload(uploadId);
     if (result.success) {
         showToast('Post deleted successfully', 'success');
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        loadUserUploads(currentUser.id);
-        loadFavorites(currentUser.id);
+        const currentUser = safeParseJSON('currentUser', null);
+        if (currentUser) {
+            loadUserUploads(currentUser.id);
+            loadFavorites(currentUser.id);
+        }
     } else {
         showToast('Failed to delete post', 'error');
     }

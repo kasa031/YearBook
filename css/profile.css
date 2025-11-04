@@ -34,6 +34,38 @@
     min-width: 150px;
 }
 
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-export,
+.btn-import {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--okra-primary);
+    color: var(--white);
+    font-size: 0.95rem;
+}
+
+.btn-export:hover,
+.btn-import:hover {
+    background: var(--okra-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 165, 165, 0.3);
+}
+
+.btn-import {
+    position: relative;
+    overflow: hidden;
+}
+
 .profile-tabs {
     display: flex;
     gap: 1rem;

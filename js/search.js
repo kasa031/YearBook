@@ -104,11 +104,11 @@ function sortResults(results, sortBy = 'date') {
 }
 
 function paginateResults(results) {
-    const start = (currentPage - 1) * RESULTS_PER_PAGE;
-    const end = start + RESULTS_PER_PAGE;
+    const start = (currentPage - 1) * CONSTANTS.RESULTS_PER_PAGE;
+    const end = start + CONSTANTS.RESULTS_PER_PAGE;
     return {
         items: results.slice(start, end),
-        totalPages: Math.ceil(results.length / RESULTS_PER_PAGE),
+        totalPages: Math.ceil(results.length / CONSTANTS.RESULTS_PER_PAGE),
         currentPage,
         total: results.length
     };
@@ -180,43 +180,67 @@ function goToPage(page) {
 }
 
 function createResultCard(result) {
-    const card = document.createElement('div');
-    card.className = 'result-card fade-in';
+    const card = createSafeElement('div', 'result-card fade-in');
     card.addEventListener('click', () => {
         window.location.href = `view.html?id=${result.id}`;
     });
 
     const imageUrl = result.imageUrl || '../assets/images/classroom.jpg';
-    const schoolName = result.schoolName || 'Unknown School';
-    const city = result.city || '';
-    const country = result.country || '';
+    const schoolName = escapeHTML(result.schoolName || 'Unknown School');
+    const city = escapeHTML(result.city || '');
+    const country = escapeHTML(result.country || 'Unknown location');
     const year = result.year || '';
-    const grade = result.grade || '';
+    const grade = escapeHTML(result.grade || '');
     const viewCount = result.viewCount || 0;
 
-    card.innerHTML = `
-        <div class="result-image-wrapper">
-            <img src="${imageUrl}" alt="${schoolName}" class="result-image" loading="lazy" onerror="this.src='../assets/images/classroom.jpg'">
-            <div class="result-overlay">
-                <span class="view-text">View Details</span>
-            </div>
-            ${viewCount > 0 ? `<div class="view-badge">👁️ ${viewCount}</div>` : ''}
-        </div>
-        <div class="result-info">
-            <h3>${schoolName}</h3>
-            <div class="result-meta">
-                ${city ? `${city}, ` : ''}${country || 'Unknown location'}
-                ${year ? ` • ${year}` : ''}
-                ${grade ? ` • ${grade}` : ''}
-            </div>
-            ${result.tags && result.tags.length > 0 ? `
-                <div class="result-tags">
-                    ${result.tags.slice(0, 3).map(tag => `<span class="tag">${tag}</span>`).join('')}
-                    ${result.tags.length > 3 ? `<span class="tag">+${result.tags.length - 3}</span>` : ''}
-                </div>
-            ` : ''}
-        </div>
-    `;
+    // Image wrapper
+    const imageWrapper = createSafeElement('div', 'result-image-wrapper');
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.alt = schoolName;
+    img.className = 'result-image';
+    img.loading = 'lazy';
+    img.onerror = function() { this.src = '../assets/images/classroom.jpg'; };
+    
+    const overlay = createSafeElement('div', 'result-overlay');
+    const viewText = createSafeElement('span', 'view-text', 'View Details');
+    overlay.appendChild(viewText);
+    
+    imageWrapper.appendChild(img);
+    imageWrapper.appendChild(overlay);
+    
+    if (viewCount > 0) {
+        const viewBadge = createSafeElement('div', 'view-badge', `👁️ ${viewCount}`);
+        imageWrapper.appendChild(viewBadge);
+    }
+    
+    // Info section
+    const info = createSafeElement('div', 'result-info');
+    const h3 = createSafeElement('h3', '', schoolName);
+    const meta = createSafeElement('div', 'result-meta');
+    
+    const locationText = city ? `${city}, ${country}` : country;
+    meta.textContent = locationText + (year ? ` • ${year}` : '') + (grade ? ` • ${grade}` : '');
+    
+    info.appendChild(h3);
+    info.appendChild(meta);
+    
+    // Tags
+    if (result.tags && result.tags.length > 0) {
+        const tagsDiv = createSafeElement('div', 'result-tags');
+        result.tags.slice(0, 3).forEach(tag => {
+            const tagSpan = createSafeElement('span', 'tag', escapeHTML(tag));
+            tagsDiv.appendChild(tagSpan);
+        });
+        if (result.tags.length > 3) {
+            const moreTag = createSafeElement('span', 'tag', `+${result.tags.length - 3}`);
+            tagsDiv.appendChild(moreTag);
+        }
+        info.appendChild(tagsDiv);
+    }
+    
+    card.appendChild(imageWrapper);
+    card.appendChild(info);
 
     return card;
 }
@@ -228,14 +252,14 @@ function loadSearchHistory() {
     if (history.length === 0 || !historyContainer) return;
     
     historyContainer.classList.remove('hidden');
-    historyContainer.innerHTML = '<h4>Recent Searches</h4>';
+    const h4 = createSafeElement('h4', '', 'Recent Searches');
+    historyContainer.appendChild(h4);
     
     history.slice(0, 5).forEach(search => {
-        const item = document.createElement('span');
-        item.className = 'history-item';
+        const item = createSafeElement('span', 'history-item');
         const searchText = Object.entries(search)
             .filter(([k, v]) => k !== 'searchedAt' && v)
-            .map(([k, v]) => v)
+            .map(([k, v]) => escapeHTML(String(v)))
             .join(', ');
         item.textContent = searchText || 'Recent search';
         item.addEventListener('click', () => {
