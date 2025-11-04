@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - YearBook</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/profile.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo-section">
+                <video class="logo-video" autoplay loop muted playsinline>
+                    <source src="../assets/videos/Logo.mp4" type="video/mp4">
+                </video>
+                <h1 class="site-title">YearBook</h1>
+            </div>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="nav" id="mainNav">
+                <a href="../index.html" class="nav-link">Home</a>
+                <a href="search.html" class="nav-link">Search</a>
+                <a href="upload.html" class="nav-link">Upload</a>
+                <a href="login.html" class="nav-link hidden" id="loginLink">Login</a>
+                <a href="profile.html" class="nav-link active" id="profileLink">Profile</a>
+                <a href="admin.html" class="nav-link hidden" id="adminLink">Admin</a>
+                <button class="btn-logout hidden" id="logoutBtn">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="profile-container">
+                <div id="notLoggedIn" class="not-logged-in hidden">
+                    <h2>Please Login</h2>
+                    <p>You need to be logged in to view your profile.</p>
+                    <a href="login.html" class="btn-primary">Go to Login</a>
+                </div>
+
+                <div id="profileContent" class="profile-content hidden">
+                    <h2>My Profile</h2>
+                    <div class="profile-info">
+                        <div class="info-item">
+                            <strong>Username:</strong>
+                            <span id="username"></span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Email:</strong>
+                            <span id="email"></span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Member Since:</strong>
+                            <span id="memberSince"></span>
+                        </div>
+                    </div>
+
+                    <h3 class="uploads-title">My Uploads</h3>
+                    <div id="myUploads" class="uploads-grid">
+                        <!-- User's uploads will be displayed here -->
+                    </div>
+                    <div id="noUploads" class="no-uploads hidden">
+                        <p>You haven't uploaded any memories yet.</p>
+                        <a href="upload.html" class="btn-primary">Upload Your First Memory</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 YearBook. Connecting memories across the globe.</p>
+        </div>
+    </footer>
+
+    <script src="../js/data.js"></script>
+    <script src="../js/shared.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/profile.js"></script>
+</body>
+</html>
+

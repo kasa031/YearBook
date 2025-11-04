@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search - YearBook</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/search.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo-section">
+                <video class="logo-video" autoplay loop muted playsinline>
+                    <source src="../assets/videos/Logo.mp4" type="video/mp4">
+                </video>
+                <h1 class="site-title">YearBook</h1>
+            </div>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="nav" id="mainNav">
+                <a href="../index.html" class="nav-link">Home</a>
+                <a href="search.html" class="nav-link active">Search</a>
+                <a href="upload.html" class="nav-link">Upload</a>
+                <a href="login.html" class="nav-link" id="loginLink">Login</a>
+                <a href="profile.html" class="nav-link hidden" id="profileLink">Profile</a>
+                <a href="admin.html" class="nav-link hidden" id="adminLink">Admin</a>
+                <button class="btn-logout hidden" id="logoutBtn">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <section class="search-section">
+                <h2>Search Yearbooks & Class Photos</h2>
+                <form id="searchForm" class="search-form-extended">
+                    <div class="search-row">
+                        <input type="text" id="schoolName" placeholder="School name" class="search-input">
+                        <input type="text" id="city" placeholder="City" class="search-input">
+                        <input type="text" id="country" placeholder="Country" class="search-input">
+                    </div>
+                    <div class="search-row">
+                        <input type="number" id="year" placeholder="Year (e.g., 1995)" class="search-input" min="1900" max="2100">
+                        <input type="text" id="grade" placeholder="Grade/Class (e.g., 5th grade)" class="search-input">
+                        <button type="submit" class="search-btn">Search</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="results-section">
+                <div id="resultsCount" class="results-count"></div>
+                <div id="resultsGrid" class="results-grid">
+                    <!-- Results will be populated here -->
+                </div>
+                <div id="noResults" class="no-results hidden">
+                    <p>No results found. Try different search criteria or <a href="upload.html">upload your own memories</a>!</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 YearBook. Connecting memories across the globe.</p>
+        </div>
+    </footer>
+
+    <script src="../js/data.js"></script>
+    <script src="../js/shared.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/search.js"></script>
+</body>
+</html>
+

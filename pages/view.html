@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Memory - YearBook</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/view.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo-section">
+                <video class="logo-video" autoplay loop muted playsinline>
+                    <source src="../assets/videos/Logo.mp4" type="video/mp4">
+                </video>
+                <h1 class="site-title">YearBook</h1>
+            </div>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="nav" id="mainNav">
+                <a href="../index.html" class="nav-link">Home</a>
+                <a href="search.html" class="nav-link">Search</a>
+                <a href="upload.html" class="nav-link">Upload</a>
+                <a href="login.html" class="nav-link" id="loginLink">Login</a>
+                <a href="profile.html" class="nav-link hidden" id="profileLink">Profile</a>
+                <button class="btn-logout hidden" id="logoutBtn">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="view-container">
+                <a href="search.html" class="back-link">← Back to Search</a>
+                
+                <div id="loading" class="loading">Loading...</div>
+                
+                <div id="memoryView" class="memory-view hidden">
+                    <div class="memory-image-section">
+                        <img id="memoryImage" src="" alt="Memory" class="memory-image">
+                    </div>
+                    
+                    <div class="memory-info-section">
+                        <h2 id="schoolName" class="memory-title"></h2>
+                        <div class="memory-meta">
+                            <div class="meta-item">
+                                <strong>Location:</strong>
+                                <span id="location"></span>
+                            </div>
+                            <div class="meta-item">
+                                <strong>Year:</strong>
+                                <span id="year"></span>
+                            </div>
+                            <div class="meta-item" id="gradeItem">
+                                <strong>Grade/Class:</strong>
+                                <span id="grade"></span>
+                            </div>
+                            <div class="meta-item" id="uploadedBy">
+                                <strong>Uploaded:</strong>
+                                <span id="uploadedDate"></span>
+                            </div>
+                        </div>
+
+                        <div id="descriptionSection" class="description-section">
+                            <h3>Description</h3>
+                            <p id="description"></p>
+                        </div>
+
+                        <div id="tagsSection" class="tags-section">
+                            <h3>Tags</h3>
+                            <div id="tagsDisplay" class="tags-display"></div>
+                        </div>
+
+                        <div class="actions">
+                            <a href="search.html" class="btn-secondary">Search Similar</a>
+                            <button class="btn-report" id="reportBtn">Report Post</button>
+                        </div>
+                        
+                        <div id="reportModal" class="report-modal hidden">
+                            <div class="report-modal-content">
+                                <span class="report-modal-close">&times;</span>
+                                <h3>Report Post</h3>
+                                <p>Help us keep the community safe by reporting inappropriate content.</p>
+                                <form id="reportForm">
+                                    <div class="form-group">
+                                        <label>Reason for reporting:</label>
+                                        <select id="reportReason" required>
+                                            <option value="">Select a reason</option>
+                                            <option value="inappropriate">Inappropriate content</option>
+                                            <option value="spam">Spam or misleading</option>
+                                            <option value="wrong_info">Incorrect information</option>
+                                            <option value="copyright">Copyright violation</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Additional details (optional):</label>
+                                        <textarea id="reportDescription" rows="4" placeholder="Please provide more information..."></textarea>
+                                    </div>
+                                    <div class="report-modal-actions">
+                                        <button type="button" class="btn-secondary" id="cancelReport">Cancel</button>
+                                        <button type="submit" class="btn-report-submit">Submit Report</button>
+                                    </div>
+                                    <div id="reportMessage"></div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="notFound" class="not-found hidden">
+                    <h2>Memory Not Found</h2>
+                    <p>The memory you're looking for doesn't exist.</p>
+                    <a href="search.html" class="btn-primary">Back to Search</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 YearBook. Connecting memories across the globe.</p>
+        </div>
+    </footer>
+
+    <script src="../js/data.js"></script>
+    <script src="../js/shared.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/view.js"></script>
+</body>
+</html>
+

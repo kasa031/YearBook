@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Search for school yearbooks and class photos from around the world">
+    <title>YearBook - Find Your School Memories</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo-section">
+                <video class="logo-video" autoplay loop muted playsinline>
+                    <source src="assets/videos/Logo.mp4" type="video/mp4">
+                </video>
+                <h1 class="site-title">YearBook</h1>
+            </div>
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="nav" id="mainNav">
+                <a href="index.html" class="nav-link active">Home</a>
+                <a href="pages/search.html" class="nav-link">Search</a>
+                <a href="pages/upload.html" class="nav-link">Upload</a>
+                <a href="pages/login.html" class="nav-link" id="loginLink">Login</a>
+                <a href="pages/profile.html" class="nav-link hidden" id="profileLink">Profile</a>
+                <a href="pages/admin.html" class="nav-link hidden" id="adminLink">Admin</a>
+                <button class="btn-logout hidden" id="logoutBtn">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="hero-section">
+            <div class="hero-background">
+                <img src="assets/images/classroom.jpg" alt="Classroom background" class="hero-bg-image">
+            </div>
+            <div class="hero-content">
+                <h2 class="hero-title">Rediscover Your School Memories</h2>
+                <p class="hero-subtitle">Search through yearbooks and class photos from schools around the world</p>
+                
+                <div class="search-container">
+                    <form class="search-form" id="mainSearchForm">
+                        <div class="search-input-group">
+                            <input type="text" id="schoolName" placeholder="School name" class="search-input">
+                            <input type="text" id="city" placeholder="City" class="search-input">
+                            <input type="text" id="country" placeholder="Country" class="search-input">
+                            <button type="submit" class="search-btn">
+                                <span>Search</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section class="features-section">
+            <div class="container">
+                <h3 class="section-title">How It Works</h3>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <video class="feature-video" autoplay loop muted playsinline>
+                                <source src="assets/videos/AnimationBook.mp4" type="video/mp4">
+                            </video>
+                        </div>
+                        <h4>Search</h4>
+                        <p>Find yearbooks and class photos by school name, city, or country</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <video class="feature-video" autoplay loop muted playsinline>
+                                <source src="assets/videos/AnimatedButton.mp4" type="video/mp4">
+                            </video>
+                        </div>
+                        <h4>Upload</h4>
+                        <p>Share your memories by uploading photos and yearbooks</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <div class="tag-icon">
+                                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M20 20 L50 10 L80 20 L80 50 L50 90 L20 50 Z" fill="var(--okra-primary)" stroke="var(--okra-dark)" stroke-width="2"/>
+                                    <text x="50" y="45" text-anchor="middle" fill="var(--white)" font-size="20" font-weight="bold">#</text>
+                                </svg>
+                            </div>
+                        </div>
+                        <h4>Tag & Organize</h4>
+                        <p>Add tags to help others find your uploaded memories easily</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 YearBook. Connecting memories across the globe.</p>
+        </div>
+    </footer>
+
+    <script src="js/shared.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
+
