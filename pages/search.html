@@ -39,16 +39,26 @@
                 <h2>Search Yearbooks & Class Photos</h2>
                 <form id="searchForm" class="search-form-extended">
                     <div class="search-row">
-                        <input type="text" id="schoolName" placeholder="School name" class="search-input">
-                        <input type="text" id="city" placeholder="City" class="search-input">
-                        <input type="text" id="country" placeholder="Country" class="search-input">
+                        <input type="text" id="schoolName" placeholder="School name" class="search-input" autocomplete="off">
+                        <input type="text" id="city" placeholder="City" class="search-input" autocomplete="off">
+                        <input type="text" id="country" placeholder="Country" class="search-input" autocomplete="off">
                     </div>
                     <div class="search-row">
                         <input type="number" id="year" placeholder="Year (e.g., 1995)" class="search-input" min="1900" max="2100">
                         <input type="text" id="grade" placeholder="Grade/Class (e.g., 5th grade)" class="search-input">
+                        <input type="text" id="tagSearch" placeholder="Tags (e.g., teacher, event)" class="search-input">
+                    </div>
+                    <div class="search-row">
+                        <select id="sortBy" class="search-input">
+                            <option value="date">Sort by: Newest First</option>
+                            <option value="year">Sort by: Year (Descending)</option>
+                            <option value="school">Sort by: School Name (A-Z)</option>
+                            <option value="views">Sort by: Most Viewed</option>
+                        </select>
                         <button type="submit" class="search-btn">Search</button>
                     </div>
                 </form>
+                <div id="searchHistory" class="search-history hidden"></div>
             </section>
 
             <section class="results-section">
@@ -56,6 +66,7 @@
                 <div id="resultsGrid" class="results-grid">
                     <!-- Results will be populated here -->
                 </div>
+                <div id="pagination" class="pagination-container"></div>
                 <div id="noResults" class="no-results hidden">
                     <p>No results found. Try different search criteria or <a href="upload.html">upload your own memories</a>!</p>
                 </div>

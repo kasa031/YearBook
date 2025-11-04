@@ -36,21 +36,86 @@ fileInput.addEventListener('change', (e) => {
     }
 });
 
-function handleFileSelect(file) {
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+function compressImage(file, maxWidth = 1920, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    } else {
+                        reject(new Error('Failed to compress image'));
+                    }
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+async function handleFileSelect(file) {
     if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
+        showToast('Please select an image file', 'error');
         return;
     }
 
+    if (file.size > MAX_FILE_SIZE) {
+        showToast('File is too large. Maximum size is 10MB. Compressing...', 'info');
+    }
+
     imageFile = file;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        imageDataUrl = e.target.result;
+    
+    try {
+        // Compress image if it's large
+        let dataUrl;
+        if (file.size > 2 * 1024 * 1024) { // Compress if > 2MB
+            showToast('Compressing image...', 'info');
+            dataUrl = await compressImage(file);
+        } else {
+            const reader = new FileReader();
+            dataUrl = await new Promise((resolve, reject) => {
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        imageDataUrl = dataUrl;
         previewImage.src = imageDataUrl;
         previewImage.classList.remove('hidden');
         uploadPlaceholder.classList.add('hidden');
-    };
-    reader.readAsDataURL(file);
+        
+        if (file.size > 2 * 1024 * 1024) {
+            showToast('Image compressed successfully', 'success');
+        }
+    } catch (error) {
+        showToast('Error processing image. Please try another file.', 'error');
+        console.error(error);
+    }
 }
 
 // Tags input handler

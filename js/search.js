@@ -17,6 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (urlParams.get('school') || urlParams.get('city') || urlParams.get('country')) {
         performSearch();
     }
+    
+    // Load search history
+    loadSearchHistory();
+    
+    // Setup autocomplete
+    setupAutocomplete();
 });
 
 // Search form handler
@@ -27,6 +33,10 @@ if (searchForm) {
         performSearch();
     });
 }
+
+let currentPage = 1;
+const RESULTS_PER_PAGE = 12;
+let allResults = [];
 
 function performSearch() {
     const resultsGrid = document.getElementById('resultsGrid');
@@ -45,6 +55,7 @@ function performSearch() {
         const country = document.getElementById('country').value.trim();
         const year = document.getElementById('year').value;
         const grade = document.getElementById('grade').value.trim();
+        const tagSearch = document.getElementById('tagSearch')?.value.trim() || '';
 
         const filters = {};
         if (schoolName) filters.school = schoolName;
@@ -52,32 +63,120 @@ function performSearch() {
         if (country) filters.country = country;
         if (year) filters.year = parseInt(year);
         if (grade) filters.grade = grade;
+        if (tagSearch) filters.tags = tagSearch;
 
-        const results = getUploads(filters);
-        displayResults(results);
+        // Save search history
+        saveSearchHistory(filters);
+
+        // Get results
+        allResults = getUploads(filters);
+        
+        // Apply sorting
+        const sortBy = document.getElementById('sortBy')?.value || 'date';
+        allResults = sortResults(allResults, sortBy);
+        
+        // Store filters for navigation
+        sessionStorage.setItem('lastSearchFilters', JSON.stringify(filters));
+        
+        // Reset to first page
+        currentPage = 1;
+        
+        // Display paginated results
+        displayResults();
     }, 300);
 }
 
-function displayResults(results) {
+function sortResults(results, sortBy = 'date') {
+    const sorted = [...results];
+    
+    switch(sortBy) {
+        case 'date':
+            return sorted.sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0));
+        case 'year':
+            return sorted.sort((a, b) => (b.year || 0) - (a.year || 0));
+        case 'school':
+            return sorted.sort((a, b) => (a.schoolName || '').localeCompare(b.schoolName || ''));
+        case 'views':
+            return sorted.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+        default:
+            return sorted;
+    }
+}
+
+function paginateResults(results) {
+    const start = (currentPage - 1) * RESULTS_PER_PAGE;
+    const end = start + RESULTS_PER_PAGE;
+    return {
+        items: results.slice(start, end),
+        totalPages: Math.ceil(results.length / RESULTS_PER_PAGE),
+        currentPage,
+        total: results.length
+    };
+}
+
+function displayResults() {
     const resultsGrid = document.getElementById('resultsGrid');
     const resultsCount = document.getElementById('resultsCount');
     const noResults = document.getElementById('noResults');
+    const pagination = document.getElementById('pagination');
 
     resultsGrid.innerHTML = '';
     noResults.classList.add('hidden');
+    if (pagination) pagination.innerHTML = '';
 
-    if (results.length === 0) {
+    if (allResults.length === 0) {
         noResults.classList.remove('hidden');
         resultsCount.textContent = 'No results found';
         return;
     }
 
-    resultsCount.textContent = `Found ${results.length} result${results.length !== 1 ? 's' : ''}`;
+    const paginated = paginateResults(allResults);
+    resultsCount.textContent = `Found ${paginated.total} result${paginated.total !== 1 ? 's' : ''} (Page ${paginated.currentPage} of ${paginated.totalPages})`;
 
-    results.forEach(result => {
+    paginated.items.forEach(result => {
         const card = createResultCard(result);
         resultsGrid.appendChild(card);
     });
+
+    // Display pagination
+    if (pagination && paginated.totalPages > 1) {
+        displayPagination(paginated);
+    }
+}
+
+function displayPagination(paginated) {
+    const pagination = document.getElementById('pagination');
+    if (!pagination) return;
+
+    let html = '<div class="pagination">';
+    
+    // Previous button
+    if (paginated.currentPage > 1) {
+        html += `<button onclick="goToPage(${paginated.currentPage - 1})" class="page-btn">← Previous</button>`;
+    }
+    
+    // Page numbers
+    for (let i = 1; i <= paginated.totalPages; i++) {
+        if (i === 1 || i === paginated.totalPages || (i >= paginated.currentPage - 2 && i <= paginated.currentPage + 2)) {
+            html += `<button onclick="goToPage(${i})" class="page-btn ${i === paginated.currentPage ? 'active' : ''}">${i}</button>`;
+        } else if (i === paginated.currentPage - 3 || i === paginated.currentPage + 3) {
+            html += `<span class="page-dots">...</span>`;
+        }
+    }
+    
+    // Next button
+    if (paginated.currentPage < paginated.totalPages) {
+        html += `<button onclick="goToPage(${paginated.currentPage + 1})" class="page-btn">Next →</button>`;
+    }
+    
+    html += '</div>';
+    pagination.innerHTML = html;
+}
+
+function goToPage(page) {
+    currentPage = page;
+    displayResults();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function createResultCard(result) {
@@ -93,6 +192,7 @@ function createResultCard(result) {
     const country = result.country || '';
     const year = result.year || '';
     const grade = result.grade || '';
+    const viewCount = result.viewCount || 0;
 
     card.innerHTML = `
         <div class="result-image-wrapper">
@@ -100,6 +200,7 @@ function createResultCard(result) {
             <div class="result-overlay">
                 <span class="view-text">View Details</span>
             </div>
+            ${viewCount > 0 ? `<div class="view-badge">👁️ ${viewCount}</div>` : ''}
         </div>
         <div class="result-info">
             <h3>${schoolName}</h3>
@@ -118,5 +219,95 @@ function createResultCard(result) {
     `;
 
     return card;
+}
+
+function loadSearchHistory() {
+    const history = getSearchHistory();
+    const historyContainer = document.getElementById('searchHistory');
+    
+    if (history.length === 0 || !historyContainer) return;
+    
+    historyContainer.classList.remove('hidden');
+    historyContainer.innerHTML = '<h4>Recent Searches</h4>';
+    
+    history.slice(0, 5).forEach(search => {
+        const item = document.createElement('span');
+        item.className = 'history-item';
+        const searchText = Object.entries(search)
+            .filter(([k, v]) => k !== 'searchedAt' && v)
+            .map(([k, v]) => v)
+            .join(', ');
+        item.textContent = searchText || 'Recent search';
+        item.addEventListener('click', () => {
+            // Populate form with search history
+            if (search.school) document.getElementById('schoolName').value = search.school;
+            if (search.city) document.getElementById('city').value = search.city;
+            if (search.country) document.getElementById('country').value = search.country;
+            if (search.year) document.getElementById('year').value = search.year;
+            if (search.grade) document.getElementById('grade').value = search.grade;
+            performSearch();
+        });
+        historyContainer.appendChild(item);
+    });
+}
+
+function setupAutocomplete() {
+    const schoolInput = document.getElementById('schoolName');
+    const cityInput = document.getElementById('city');
+    const countryInput = document.getElementById('country');
+    
+    [schoolInput, cityInput, countryInput].forEach((input, index) => {
+        if (!input) return;
+        
+        const field = ['school', 'city', 'country'][index];
+        let timeout;
+        
+        input.addEventListener('input', (e) => {
+            clearTimeout(timeout);
+            const query = e.target.value.trim();
+            
+            if (query.length < 2) {
+                const dropdown = input.parentElement.querySelector('.autocomplete-dropdown');
+                if (dropdown) dropdown.remove();
+                return;
+            }
+            
+            timeout = setTimeout(() => {
+                const suggestions = getAutocompleteSuggestions(query, field);
+                showAutocompleteSuggestions(input, suggestions);
+            }, 300);
+        });
+        
+        input.addEventListener('blur', () => {
+            setTimeout(() => {
+                const dropdown = input.parentElement.querySelector('.autocomplete-dropdown');
+                if (dropdown) dropdown.remove();
+            }, 200);
+        });
+    });
+}
+
+function showAutocompleteSuggestions(input, suggestions) {
+    // Remove existing dropdown
+    const existing = input.parentElement.querySelector('.autocomplete-dropdown');
+    if (existing) existing.remove();
+    
+    if (suggestions.length === 0) return;
+    
+    const dropdown = document.createElement('div');
+    dropdown.className = 'autocomplete-dropdown';
+    
+    suggestions.forEach(suggestion => {
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+        item.textContent = suggestion;
+        item.addEventListener('click', () => {
+            input.value = suggestion;
+            dropdown.remove();
+        });
+        dropdown.appendChild(item);
+    });
+    
+    input.parentElement.appendChild(dropdown);
 }
 

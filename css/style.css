@@ -578,3 +578,44 @@ html {
     margin: 1rem 0;
 }
 
+/* Toast Notifications (global) */
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--white);
+    color: var(--text-dark);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 3000;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    max-width: 300px;
+    font-weight: 500;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast-success {
+    border-left: 4px solid #28a745;
+    background: #d4edda;
+    color: #155724;
+}
+
+.toast-error {
+    border-left: 4px solid #dc3545;
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.toast-info {
+    border-left: 4px solid var(--okra-primary);
+    background: var(--okra-cream);
+    color: var(--okra-dark);
+}
+

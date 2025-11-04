@@ -2,7 +2,9 @@
 const STORAGE_KEYS = {
     USERS: 'yearbook_users',
     UPLOADS: 'yearbook_uploads',
-    REPORTS: 'yearbook_reports'
+    REPORTS: 'yearbook_reports',
+    FAVORITES: 'yearbook_favorites',
+    SEARCH_HISTORY: 'yearbook_search_history'
 };
 
 // Admin email (can be changed)
@@ -18,6 +20,12 @@ function initStorage() {
     }
     if (!localStorage.getItem(STORAGE_KEYS.REPORTS)) {
         localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify([]));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.FAVORITES)) {
+        localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify([]));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.SEARCH_HISTORY)) {
+        localStorage.setItem(STORAGE_KEYS.SEARCH_HISTORY, JSON.stringify([]));
     }
 }
 
@@ -120,6 +128,17 @@ function getUploads(filters = {}) {
         );
     }
 
+    if (filters.tags) {
+        const tagArray = Array.isArray(filters.tags) ? filters.tags : filters.tags.split(',').map(t => t.trim());
+        uploads = uploads.filter(u => 
+            tagArray.some(filterTag => 
+                u.tags?.some(uploadTag => 
+                    uploadTag.toLowerCase().includes(filterTag.toLowerCase())
+                )
+            )
+        );
+    }
+
     return uploads;
 }
 
@@ -203,7 +222,134 @@ function deleteUpload(uploadId) {
     const uploads = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOADS));
     const filtered = uploads.filter(u => u.id !== uploadId);
     localStorage.setItem(STORAGE_KEYS.UPLOADS, JSON.stringify(filtered));
+    
+    // Also remove from favorites
+    const favorites = JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES)) || [];
+    const filteredFavorites = favorites.filter(f => f.uploadId !== uploadId);
+    localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(filteredFavorites));
+    
     return { success: true };
+}
+
+// Update upload function
+function updateUpload(uploadId, updatedData) {
+    initStorage();
+    const uploads = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOADS));
+    const index = uploads.findIndex(u => u.id === uploadId);
+    
+    if (index !== -1) {
+        uploads[index] = { 
+            ...uploads[index], 
+            ...updatedData, 
+            updatedAt: new Date().toISOString() 
+        };
+        localStorage.setItem(STORAGE_KEYS.UPLOADS, JSON.stringify(uploads));
+        return { success: true, upload: uploads[index] };
+    }
+    
+    return { success: false, message: 'Upload not found' };
+}
+
+// Check if user can edit upload
+function canEditUpload(uploadId, userId) {
+    const upload = getUploadById(uploadId);
+    return upload && upload.uploadedBy === userId;
+}
+
+// Favorites functions
+function addFavorite(uploadId, userId) {
+    initStorage();
+    const favorites = JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES)) || [];
+    
+    if (!favorites.find(f => f.uploadId === uploadId && f.userId === userId)) {
+        favorites.push({ 
+            uploadId, 
+            userId, 
+            addedAt: new Date().toISOString() 
+        });
+        localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(favorites));
+        return { success: true };
+    }
+    
+    return { success: false, message: 'Already favorited' };
+}
+
+function removeFavorite(uploadId, userId) {
+    initStorage();
+    const favorites = JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES)) || [];
+    const filtered = favorites.filter(f => !(f.uploadId === uploadId && f.userId === userId));
+    localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(filtered));
+    return { success: true };
+}
+
+function isFavorited(uploadId, userId) {
+    initStorage();
+    const favorites = JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES)) || [];
+    return favorites.some(f => f.uploadId === uploadId && f.userId === userId);
+}
+
+function getFavorites(userId) {
+    initStorage();
+    const favorites = JSON.parse(localStorage.getItem(STORAGE_KEYS.FAVORITES)) || [];
+    return favorites.filter(f => f.userId === userId).map(f => f.uploadId);
+}
+
+function getFavoriteUploads(userId) {
+    const favoriteIds = getFavorites(userId);
+    const uploads = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOADS)) || [];
+    return uploads.filter(u => favoriteIds.includes(u.id));
+}
+
+// View count function
+function incrementViewCount(uploadId) {
+    initStorage();
+    const uploads = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOADS));
+    const upload = uploads.find(u => u.id === uploadId);
+    
+    if (upload) {
+        upload.viewCount = (upload.viewCount || 0) + 1;
+        localStorage.setItem(STORAGE_KEYS.UPLOADS, JSON.stringify(uploads));
+        return upload.viewCount;
+    }
+    
+    return 0;
+}
+
+// Search history functions
+function saveSearchHistory(searchParams) {
+    initStorage();
+    const history = JSON.parse(localStorage.getItem(STORAGE_KEYS.SEARCH_HISTORY)) || [];
+    history.unshift({
+        ...searchParams,
+        searchedAt: new Date().toISOString()
+    });
+    // Keep only last 10 searches
+    const limited = history.slice(0, 10);
+    localStorage.setItem(STORAGE_KEYS.SEARCH_HISTORY, JSON.stringify(limited));
+}
+
+function getSearchHistory() {
+    initStorage();
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.SEARCH_HISTORY)) || [];
+}
+
+// Get autocomplete suggestions
+function getAutocompleteSuggestions(query, field = 'school') {
+    initStorage();
+    const uploads = JSON.parse(localStorage.getItem(STORAGE_KEYS.UPLOADS)) || [];
+    
+    if (field === 'school') {
+        const schools = [...new Set(uploads.map(u => u.schoolName).filter(Boolean))];
+        return schools.filter(s => s.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
+    } else if (field === 'city') {
+        const cities = [...new Set(uploads.map(u => u.city).filter(Boolean))];
+        return cities.filter(c => c.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
+    } else if (field === 'country') {
+        const countries = [...new Set(uploads.map(u => u.country).filter(Boolean))];
+        return countries.filter(c => c.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
+    }
+    
+    return [];
 }
 
 // Initialize on load

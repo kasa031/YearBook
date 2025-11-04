@@ -70,11 +70,25 @@ function loadMemory(id) {
         document.getElementById('tagsSection').style.display = 'none';
     }
 
+    // Increment view count
+    incrementViewCount(id);
+    const viewCount = getUploadById(id)?.viewCount || 0;
+    
+    // Display view count
+    const viewCountElement = document.getElementById('viewCount');
+    if (viewCountElement) {
+        viewCountElement.textContent = `${viewCount} view${viewCount !== 1 ? 's' : ''}`;
+    }
+
     loading.classList.add('hidden');
     memoryView.classList.remove('hidden');
     
-    // Initialize report functionality
+    // Initialize all functionalities
     initReportFunctionality(memoryId);
+    initFavoriteFunctionality(memoryId);
+    initShareFunctionality(memoryId);
+    initEditDeleteFunctionality(memoryId);
+    initNavigationFunctionality(memoryId);
 }
 
 function showNotFound() {
@@ -150,5 +164,174 @@ function initReportFunctionality(uploadId) {
             }
         });
     }
+}
+
+// Favorite functionality
+function initFavoriteFunctionality(uploadId) {
+    const favoriteBtn = document.getElementById('favoriteBtn');
+    if (!favoriteBtn) return;
+    
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) {
+        favoriteBtn.style.display = 'none';
+        return;
+    }
+    
+    const isFav = isFavorited(uploadId, currentUser.id);
+    updateFavoriteButton(favoriteBtn, isFav);
+    
+    favoriteBtn.addEventListener('click', () => {
+        if (isFavorited(uploadId, currentUser.id)) {
+            removeFavorite(uploadId, currentUser.id);
+            updateFavoriteButton(favoriteBtn, false);
+            showToast('Removed from favorites', 'success');
+        } else {
+            addFavorite(uploadId, currentUser.id);
+            updateFavoriteButton(favoriteBtn, true);
+            showToast('Added to favorites', 'success');
+        }
+    });
+}
+
+function updateFavoriteButton(btn, isFavorite) {
+    if (isFavorite) {
+        btn.innerHTML = '❤️ Favorited';
+        btn.classList.add('favorited');
+    } else {
+        btn.innerHTML = '🤍 Add to Favorites';
+        btn.classList.remove('favorited');
+    }
+}
+
+// Share functionality
+function initShareFunctionality(uploadId) {
+    const shareBtn = document.getElementById('shareBtn');
+    const copyLinkBtn = document.getElementById('copyLinkBtn');
+    
+    if (shareBtn) {
+        shareBtn.addEventListener('click', () => {
+            sharePost(uploadId);
+        });
+    }
+    
+    if (copyLinkBtn) {
+        copyLinkBtn.addEventListener('click', () => {
+            copyPostLink(uploadId);
+        });
+    }
+}
+
+function sharePost(uploadId) {
+    const url = `${window.location.origin}${window.location.pathname}?id=${uploadId}`;
+    const title = document.getElementById('schoolName')?.textContent || 'YearBook Memory';
+    
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: 'Check out this school memory on YearBook!',
+            url: url
+        }).catch(() => {
+            copyPostLink(uploadId);
+        });
+    } else {
+        copyPostLink(uploadId);
+    }
+}
+
+function copyPostLink(uploadId) {
+    const url = `${window.location.origin}${window.location.pathname}?id=${uploadId}`;
+    navigator.clipboard.writeText(url).then(() => {
+        showToast('Link copied to clipboard!', 'success');
+    }).catch(() => {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('Link copied to clipboard!', 'success');
+    });
+}
+
+// Edit/Delete functionality
+function initEditDeleteFunctionality(uploadId) {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) return;
+    
+    const canEdit = canEditUpload(uploadId, currentUser.id);
+    const editBtn = document.getElementById('editBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+    
+    if (canEdit) {
+        if (editBtn) editBtn.classList.remove('hidden');
+        if (deleteBtn) deleteBtn.classList.remove('hidden');
+        
+        if (editBtn) {
+            editBtn.addEventListener('click', () => {
+                window.location.href = `edit.html?id=${uploadId}`;
+            });
+        }
+        
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+                    deleteUpload(uploadId);
+                    showToast('Post deleted successfully', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'profile.html';
+                    }, 1500);
+                }
+            });
+        }
+    }
+}
+
+// Navigation functionality (previous/next)
+function initNavigationFunctionality(uploadId) {
+    const previousBtn = document.getElementById('previousBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    // Get current search context from sessionStorage or URL
+    const searchFilters = JSON.parse(sessionStorage.getItem('lastSearchFilters')) || {};
+    const allPosts = getUploads(searchFilters);
+    const sortedPosts = sortResults(allPosts, 'date');
+    const currentIndex = sortedPosts.findIndex(p => p.id === uploadId);
+    
+    if (currentIndex > 0 && previousBtn) {
+        previousBtn.classList.remove('hidden');
+        previousBtn.addEventListener('click', () => {
+            window.location.href = `view.html?id=${sortedPosts[currentIndex - 1].id}`;
+        });
+    }
+    
+    if (currentIndex < sortedPosts.length - 1 && nextBtn) {
+        nextBtn.classList.remove('hidden');
+        nextBtn.addEventListener('click', () => {
+            window.location.href = `view.html?id=${sortedPosts[currentIndex + 1].id}`;
+        });
+    }
+}
+
+// Toast notification system
+function showToast(message, type = 'info') {
+    // Remove existing toasts
+    const existingToasts = document.querySelectorAll('.toast');
+    existingToasts.forEach(toast => toast.remove());
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // Remove after delay
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
