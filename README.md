@@ -75,6 +75,31 @@ The application uses browser LocalStorage to store:
 
 **Note**: Data is stored locally in your browser and will be cleared if you clear browser data.
 
+### API Configuration (Optional)
+
+If you need to use external APIs (e.g., OpenRouter), you can configure API keys securely:
+
+1. **Copy the example config file:**
+   ```bash
+   cp config.js.example config.js
+   ```
+
+2. **Add your API key to `config.js`:**
+   ```javascript
+   const CONFIG = {
+       OPENROUTER_API_KEY: 'your-api-key-here'
+   };
+   ```
+
+3. **Use the API key in your code:**
+   ```javascript
+   const apiKey = getApiKey('OPENROUTER');
+   ```
+
+**⚠️ IMPORTANT:** The `config.js` file is automatically ignored by Git and will NOT be committed. Never commit API keys or sensitive data to the repository!
+
+See [SECURITY.md](SECURITY.md) for detailed security guidelines.
+
 ### Admin Access
 
 To access the admin panel:

@@ -25,6 +25,19 @@ npm-debug.log*
 # Local development
 .env
 .env.local
+.env.*
+!.env.example
+
+# Configuration files with sensitive data
+config.js
+config.local.js
+secrets.js
+*.secret.js
+
+# API keys and credentials
+**/api-keys.js
+**/credentials.js
+**/secrets/
 
 # Backup files
 *.bak

@@ -1,0 +1,9 @@
+// Configuration file for API keys and sensitive data
+// COPY THIS FILE TO config.js AND ADD YOUR ACTUAL API KEYS
+// DO NOT COMMIT config.js TO GIT!
+
+const CONFIG = {
+    // OpenRouter API Key
+    OPENROUTER_API_KEY: 'YOUR_API_KEY_HERE'
+};
+

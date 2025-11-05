@@ -293,6 +293,29 @@ function setupErrorHandling() {
     });
 }
 
+// API Configuration - Safe access to API keys
+function getApiKey(service = 'OPENROUTER') {
+    // Check if CONFIG exists (loaded from config.js)
+    if (typeof CONFIG === 'undefined') {
+        logError('CONFIG is not defined. Make sure config.js is loaded before this script.');
+        return null;
+    }
+    
+    const keyMap = {
+        'OPENROUTER': 'OPENROUTER_API_KEY'
+    };
+    
+    const keyName = keyMap[service] || service;
+    const apiKey = CONFIG[keyName];
+    
+    if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
+        logError(`API key for ${service} is not configured or is using placeholder value.`);
+        return null;
+    }
+    
+    return apiKey;
+}
+
 // Initialize error handling on load
 if (typeof window !== 'undefined') {
     setupErrorHandling();
