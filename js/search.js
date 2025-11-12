@@ -9,13 +9,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const yearInput = document.getElementById('year');
     const gradeInput = document.getElementById('grade');
 
-    if (urlParams.get('school')) schoolInput.value = urlParams.get('school');
-    if (urlParams.get('city')) cityInput.value = urlParams.get('city');
-    if (urlParams.get('country')) countryInput.value = urlParams.get('country');
-
-    // Perform initial search if URL params exist
-    if (urlParams.get('school') || urlParams.get('city') || urlParams.get('country')) {
+    // Handle quick search query from header
+    const quickQuery = urlParams.get('q');
+    if (quickQuery) {
+        // Split query into words and try to match to fields
+        const words = quickQuery.trim().split(/\s+/);
+        if (words.length > 0) {
+            schoolInput.value = words[0] || '';
+            if (words.length > 1) cityInput.value = words[1] || '';
+            if (words.length > 2) countryInput.value = words[2] || '';
+        } else {
+            schoolInput.value = quickQuery;
+        }
         performSearch();
+    } else {
+        if (urlParams.get('school')) schoolInput.value = urlParams.get('school');
+        if (urlParams.get('city')) cityInput.value = urlParams.get('city');
+        if (urlParams.get('country')) countryInput.value = urlParams.get('country');
+
+        // Perform initial search if URL params exist
+        if (urlParams.get('school') || urlParams.get('city') || urlParams.get('country')) {
+            performSearch();
+        }
     }
     
     // Load search history
@@ -23,6 +38,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Setup autocomplete
     setupAutocomplete();
+    
+    // Setup sort change listener
+    const sortBySelect = document.getElementById('sortBy');
+    if (sortBySelect) {
+        sortBySelect.addEventListener('change', () => {
+            if (allResults.length > 0) {
+                const sortBy = sortBySelect.value;
+                allResults = sortResults(allResults, sortBy);
+                currentPage = 1;
+                displayResults();
+            }
+        });
+    }
 });
 
 // Search form handler
@@ -94,10 +122,20 @@ function sortResults(results, sortBy = 'date') {
             return sorted.sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0));
         case 'year':
             return sorted.sort((a, b) => (b.year || 0) - (a.year || 0));
+        case 'year-oldest':
+            return sorted.sort((a, b) => (a.year || 0) - (b.year || 0));
         case 'school':
             return sorted.sort((a, b) => (a.schoolName || '').localeCompare(b.schoolName || ''));
+        case 'school-desc':
+            return sorted.sort((a, b) => (b.schoolName || '').localeCompare(a.schoolName || ''));
         case 'views':
             return sorted.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+        case 'location':
+            return sorted.sort((a, b) => {
+                const locA = `${a.city || ''}, ${a.country || ''}`.toLowerCase();
+                const locB = `${b.city || ''}, ${b.country || ''}`.toLowerCase();
+                return locA.localeCompare(locB);
+            });
         default:
             return sorted;
     }
@@ -249,20 +287,48 @@ function loadSearchHistory() {
     const history = getSearchHistory();
     const historyContainer = document.getElementById('searchHistory');
     
-    if (history.length === 0 || !historyContainer) return;
+    if (!historyContainer) return;
+    
+    // Clear previous content
+    historyContainer.innerHTML = '';
+    
+    if (history.length === 0) {
+        historyContainer.classList.add('hidden');
+        return;
+    }
     
     historyContainer.classList.remove('hidden');
-    const h4 = createSafeElement('h4', '', 'Recent Searches');
+    const h4 = createSafeElement('h4', '', '🔍 Recent Searches');
     historyContainer.appendChild(h4);
     
-    history.slice(0, 5).forEach(search => {
-        const item = createSafeElement('span', 'history-item');
+    const historyList = createSafeElement('div', 'history-list');
+    
+    history.slice(0, 5).forEach((search, index) => {
+        const item = createSafeElement('div', 'history-item');
+        
         const searchText = Object.entries(search)
             .filter(([k, v]) => k !== 'searchedAt' && v)
-            .map(([k, v]) => escapeHTML(String(v)))
-            .join(', ');
-        item.textContent = searchText || 'Recent search';
-        item.addEventListener('click', () => {
+            .map(([k, v]) => {
+                const label = k === 'school' ? 'School' : k === 'city' ? 'City' : k === 'country' ? 'Country' : k === 'year' ? 'Year' : k;
+                return `${label}: ${escapeHTML(String(v))}`;
+            })
+            .join(' • ') || 'Recent search';
+        
+        const textSpan = createSafeElement('span', 'history-text', searchText);
+        item.appendChild(textSpan);
+        
+        // Add delete button
+        const deleteBtn = createSafeElement('button', 'history-delete', '×');
+        deleteBtn.setAttribute('aria-label', 'Delete search history item');
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeSearchHistoryItem(index);
+            loadSearchHistory();
+        });
+        item.appendChild(deleteBtn);
+        
+        item.addEventListener('click', (e) => {
+            if (e.target === deleteBtn) return;
             // Populate form with search history
             if (search.school) document.getElementById('schoolName').value = search.school;
             if (search.city) document.getElementById('city').value = search.city;
@@ -271,8 +337,21 @@ function loadSearchHistory() {
             if (search.grade) document.getElementById('grade').value = search.grade;
             performSearch();
         });
-        historyContainer.appendChild(item);
+        
+        historyList.appendChild(item);
     });
+    
+    // Add clear all button
+    if (history.length > 0) {
+        const clearBtn = createSafeElement('button', 'history-clear', 'Clear All');
+        clearBtn.addEventListener('click', () => {
+            clearSearchHistory();
+            loadSearchHistory();
+        });
+        historyContainer.appendChild(clearBtn);
+    }
+    
+    historyContainer.appendChild(historyList);
 }
 
 function setupAutocomplete() {

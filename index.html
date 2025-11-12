@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Search for school yearbooks and class photos from around the world">
     <title>YearBook - Find Your School Memories</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2c5f2d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="YearBook">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#2c5f2d">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/icon-192x192.png">
+    <link rel="mask-icon" href="assets/icons/icon-192x192.png" color="#2c5f2d">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="assets/icons/icon-192x192.png">
+    
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -15,6 +37,12 @@
                     <source src="assets/videos/Logo.mp4" type="video/mp4">
                 </video>
                 <h1 class="site-title">YearBook</h1>
+            </div>
+            <div class="header-search" id="headerSearch">
+                <form class="header-search-form" id="headerSearchForm">
+                    <input type="text" id="headerSearchInput" placeholder="Quick search..." class="header-search-input" autocomplete="off">
+                    <button type="submit" class="header-search-btn" aria-label="Search">🔍</button>
+                </form>
             </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
                 <span></span>
@@ -104,6 +132,7 @@
 
     <script src="js/utils.js"></script>
     <script src="js/shared.js"></script>
+    <script src="js/pwa.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

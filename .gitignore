@@ -38,7 +38,32 @@ secrets.js
 **/api-keys.js
 **/credentials.js
 **/secrets/
+**/*key*.js
+**/*token*.js
+**/*password*.js
+**/*secret*.js
+**/*credential*.js
+
+# Environment variables
+.env
+.env.local
+.env.*
+!.env.example
 
 # Backup files
 *.bak
 *~
+
+# ⚠️ SIKKERHET: ALDRI committ følgende
+# Nøkler, tokens, passord, og annen sensitiv informasjon
+**/private/
+**/keys/
+**/tokens/
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+# ⚠️ VIKTIG: .gitignore filen selv skal IKKE committes med nøkler
+# Hvis du ved uhell har lagt til nøkler i .gitignore, fjern dem først!

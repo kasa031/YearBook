@@ -20,7 +20,14 @@ function loadMemory(id) {
 
     if (!memory) {
         loading.classList.add('hidden');
-        showNotFound();
+        // Check if it's a private post
+        const uploads = safeParseJSON(STORAGE_KEYS.UPLOADS, []);
+        const upload = uploads.find(u => u.id === id);
+        if (upload && upload.isPrivate) {
+            showNotFound('This post is private and only visible to the owner.');
+        } else {
+            showNotFound();
+        }
         return;
     }
 
@@ -86,16 +93,23 @@ function loadMemory(id) {
     // Initialize all functionalities
     initReportFunctionality(memoryId);
     initFavoriteFunctionality(memoryId);
+    initDownloadFunctionality(memoryId);
     initShareFunctionality(memoryId);
     initEditDeleteFunctionality(memoryId);
     initNavigationFunctionality(memoryId);
+    initScrollToTop();
 }
 
-function showNotFound() {
+function showNotFound(message) {
     const loading = document.getElementById('loading');
     const notFound = document.getElementById('notFound');
     loading.classList.add('hidden');
     notFound.classList.remove('hidden');
+    
+    // Update message if provided
+    if (message && notFound.querySelector('p')) {
+        notFound.querySelector('p').textContent = message;
+    }
 }
 
 // Report functionality
@@ -275,13 +289,7 @@ function initEditDeleteFunctionality(uploadId) {
         
         if (deleteBtn) {
             deleteBtn.addEventListener('click', () => {
-                if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
-                    deleteUpload(uploadId);
-                    showToast('Post deleted successfully', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'profile.html';
-                    }, 1500);
-                }
+                showDeleteConfirmModal(uploadId);
             });
         }
     }
@@ -311,6 +319,110 @@ function initNavigationFunctionality(uploadId) {
             window.location.href = `view.html?id=${sortedPosts[currentIndex + 1].id}`;
         });
     }
+}
+
+// Download functionality
+function initDownloadFunctionality(uploadId) {
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (!downloadBtn) return;
+    
+    downloadBtn.addEventListener('click', () => {
+        const memory = getUploadById(uploadId);
+        if (!memory || !memory.imageUrl) {
+            showToast('Image not available for download', 'error');
+            return;
+        }
+        
+        downloadImage(memory.imageUrl, memory.schoolName || 'YearBook Memory');
+    });
+}
+
+function downloadImage(imageUrl, filename) {
+    // Create a temporary anchor element
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = `${filename.replace(/[^a-z0-9]/gi, '_')}.jpg`;
+    link.target = '_blank';
+    
+    // Append to body, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast('Image download started', 'success');
+}
+
+// Delete confirmation modal
+function showDeleteConfirmModal(uploadId) {
+    const modal = document.getElementById('deleteConfirmModal');
+    const cancelBtn = document.getElementById('cancelDelete');
+    const confirmBtn = document.getElementById('confirmDelete');
+    
+    if (!modal) return;
+    
+    modal.classList.remove('hidden');
+    
+    const closeModal = () => {
+        modal.classList.add('hidden');
+    };
+    
+    if (cancelBtn) {
+        cancelBtn.onclick = closeModal;
+    }
+    
+    if (confirmBtn) {
+        confirmBtn.onclick = () => {
+            const result = deleteUpload(uploadId);
+            if (result.success) {
+                showToast('Post deleted successfully', 'success');
+                setTimeout(() => {
+                    window.location.href = 'profile.html';
+                }, 1500);
+            } else {
+                showToast(result.message || 'Failed to delete post', 'error');
+                closeModal();
+            }
+        };
+    }
+    
+    // Close on outside click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    // Close on ESC key
+    const handleEsc = (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+            document.removeEventListener('keydown', handleEsc);
+        }
+    };
+    document.addEventListener('keydown', handleEsc);
+}
+
+// Scroll to top functionality
+function initScrollToTop() {
+    const scrollBtn = document.getElementById('scrollToTop');
+    if (!scrollBtn) return;
+    
+    // Show/hide button based on scroll position
+    window.addEventListener('scroll', () => {
+        if (window.pageYOffset > 300) {
+            scrollBtn.classList.remove('hidden');
+        } else {
+            scrollBtn.classList.add('hidden');
+        }
+    });
+    
+    // Scroll to top on click
+    scrollBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
 }
 
 // showToast is now in utils.js - no need to redefine

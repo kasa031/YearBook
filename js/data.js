@@ -114,7 +114,8 @@ function saveUpload(uploadData) {
         imageUrl: uploadData.imageUrl,
         uploadedAt: new Date().toISOString(),
         uploadedBy: currentUser?.id || 'anonymous',
-        viewCount: 0
+        viewCount: 0,
+        isPrivate: uploadData.isPrivate || false // Private mode flag
     };
 
     uploads.push(newUpload);
@@ -129,6 +130,16 @@ function saveUpload(uploadData) {
 function getUploads(filters = {}) {
     initStorage();
     let uploads = safeParseJSON(STORAGE_KEYS.UPLOADS, []);
+    const currentUser = safeParseJSON('currentUser', null);
+
+    // Filter out private posts (only show them to the owner)
+    uploads = uploads.filter(upload => {
+        if (upload.isPrivate) {
+            // Only show private posts to the owner
+            return currentUser && upload.uploadedBy === currentUser.id;
+        }
+        return true; // Show all public posts
+    });
 
     // Apply filters
     if (filters.school) {
@@ -181,7 +192,18 @@ function getUploads(filters = {}) {
 function getUploadById(id) {
     initStorage();
     const uploads = safeParseJSON(STORAGE_KEYS.UPLOADS, []);
-    return uploads.find(u => u.id === id);
+    const upload = uploads.find(u => u.id === id);
+    
+    // Check if upload is private and user has access
+    if (upload && upload.isPrivate) {
+        const currentUser = safeParseJSON('currentUser', null);
+        // Only show private posts to the owner
+        if (!currentUser || upload.uploadedBy !== currentUser.id) {
+            return null; // Don't show private posts to others
+        }
+    }
+    
+    return upload;
 }
 
 // Report functions
@@ -305,6 +327,7 @@ function updateUpload(uploadId, updatedData) {
             grade: updatedData.grade ? updatedData.grade.trim() : null,
             description: updatedData.description ? updatedData.description.trim() : null,
             tags: updatedData.tags || [],
+            isPrivate: updatedData.isPrivate !== undefined ? updatedData.isPrivate : uploads[index].isPrivate || false,
             updatedAt: new Date().toISOString() 
         };
         const result = safeSetItem(STORAGE_KEYS.UPLOADS, uploads);
@@ -404,6 +427,20 @@ function saveSearchHistory(searchParams) {
 function getSearchHistory() {
     initStorage();
     return safeParseJSON(STORAGE_KEYS.SEARCH_HISTORY, []);
+}
+
+function removeSearchHistoryItem(index) {
+    initStorage();
+    const history = safeParseJSON(STORAGE_KEYS.SEARCH_HISTORY, []);
+    if (index >= 0 && index < history.length) {
+        history.splice(index, 1);
+        safeSetItem(STORAGE_KEYS.SEARCH_HISTORY, history);
+    }
+}
+
+function clearSearchHistory() {
+    initStorage();
+    safeSetItem(STORAGE_KEYS.SEARCH_HISTORY, []);
 }
 
 // Get autocomplete suggestions

@@ -1,11 +1,11 @@
 let selectedTags = [];
-let imageFile = null;
-let imageDataUrl = null;
+let imageFiles = []; // Changed to array for multiple files
+let imageDataUrls = []; // Changed to array for multiple data URLs
 
 // File input handler
 const fileInput = document.getElementById('fileInput');
 const uploadArea = document.getElementById('uploadArea');
-const previewImage = document.getElementById('previewImage');
+const uploadPreview = document.getElementById('uploadPreview');
 const uploadPlaceholder = document.getElementById('uploadPlaceholder');
 
 uploadArea.addEventListener('click', () => {
@@ -24,15 +24,16 @@ uploadArea.addEventListener('dragleave', () => {
 uploadArea.addEventListener('drop', (e) => {
     e.preventDefault();
     uploadArea.style.borderColor = 'var(--okra-light)';
-    const files = e.dataTransfer.files;
+    const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-        handleFileSelect(files[0]);
+        handleFilesSelect(files);
     }
 });
 
 fileInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
-        handleFileSelect(e.target.files[0]);
+        const files = Array.from(e.target.files);
+        handleFilesSelect(files);
     }
 });
 
@@ -77,45 +78,120 @@ function compressImage(file, maxWidth = 1920, quality = 0.8) {
     });
 }
 
-async function handleFileSelect(file) {
-    if (!file.type.startsWith('image/')) {
-        showToast('Please select an image file', 'error');
+async function handleFilesSelect(files) {
+    // Filter only image files
+    const imageFilesArray = files.filter(file => file.type.startsWith('image/'));
+    
+    if (imageFilesArray.length === 0) {
+        showToast('Please select image files only', 'error');
         return;
     }
 
-    if (file.size > CONSTANTS.MAX_FILE_SIZE) {
-        showToast(`File is too large. Maximum size is ${CONSTANTS.MAX_FILE_SIZE / (1024 * 1024)}MB. Compressing...`, 'info');
+    // Limit to 10 files max
+    if (imageFilesArray.length > 10) {
+        showToast('Maximum 10 images allowed. Only the first 10 will be processed.', 'info');
+        imageFilesArray.splice(10);
     }
 
-    imageFile = file;
-    
+    // Clear previous previews
+    imageFiles = [];
+    imageDataUrls = [];
+    uploadPreview.innerHTML = '';
+    uploadPlaceholder.classList.add('hidden');
+
+    // Show loading indicator
+    const loadingDiv = createSafeElement('div', 'upload-loading', 'Processing images...');
+    uploadPreview.appendChild(loadingDiv);
+
+    // Process all files
     try {
-        // Compress image if it's large
-        let dataUrl;
-        if (file.size > CONSTANTS.COMPRESSION_THRESHOLD) {
-            showToast('Compressing image...', 'info');
-            dataUrl = await compressImage(file);
-        } else {
-            const reader = new FileReader();
-            dataUrl = await new Promise((resolve, reject) => {
-                reader.onload = (e) => resolve(e.target.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
+        for (let i = 0; i < imageFilesArray.length; i++) {
+            const file = imageFilesArray[i];
+            
+            if (file.size > CONSTANTS.MAX_FILE_SIZE) {
+                showToast(`File "${file.name}" is too large. Compressing...`, 'info');
+            }
+
+            imageFiles.push(file);
+            
+            // Compress image if it's large
+            let dataUrl;
+            if (file.size > CONSTANTS.COMPRESSION_THRESHOLD) {
+                dataUrl = await compressImage(file);
+            } else {
+                const reader = new FileReader();
+                dataUrl = await new Promise((resolve, reject) => {
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            imageDataUrls.push(dataUrl);
         }
-        
-        imageDataUrl = dataUrl;
-        previewImage.src = imageDataUrl;
-        previewImage.classList.remove('hidden');
-        uploadPlaceholder.classList.add('hidden');
-        
-        if (file.size > CONSTANTS.COMPRESSION_THRESHOLD) {
-            showToast('Image compressed successfully', 'success');
+
+        // Remove loading indicator
+        loadingDiv.remove();
+
+        // Display all previews
+        imageDataUrls.forEach((dataUrl, index) => {
+            const previewContainer = createSafeElement('div', 'preview-item');
+            const previewImage = createSafeElement('img', 'preview-image');
+            previewImage.src = dataUrl;
+            previewImage.alt = `Preview ${index + 1}`;
+            
+            const removeBtn = createSafeElement('button', 'preview-remove', '×');
+            removeBtn.setAttribute('aria-label', 'Remove image');
+            removeBtn.onclick = () => {
+                imageFiles.splice(index, 1);
+                imageDataUrls.splice(index, 1);
+                updatePreviews();
+            };
+            
+            previewContainer.appendChild(previewImage);
+            previewContainer.appendChild(removeBtn);
+            uploadPreview.appendChild(previewContainer);
+        });
+
+        if (imageFiles.length > 0) {
+            showToast(`${imageFiles.length} image(s) ready for upload`, 'success');
         }
     } catch (error) {
-        showToast('Error processing image. Please try another file.', 'error');
+        showToast('Error processing images. Please try again.', 'error');
         console.error(error);
+        uploadPreview.innerHTML = '';
+        uploadPlaceholder.classList.remove('hidden');
     }
+}
+
+function updatePreviews() {
+    uploadPreview.innerHTML = '';
+    
+    if (imageDataUrls.length === 0) {
+        uploadPlaceholder.classList.remove('hidden');
+        return;
+    }
+    
+    uploadPlaceholder.classList.add('hidden');
+    
+    imageDataUrls.forEach((dataUrl, index) => {
+        const previewContainer = createSafeElement('div', 'preview-item');
+        const previewImage = createSafeElement('img', 'preview-image');
+        previewImage.src = dataUrl;
+        previewImage.alt = `Preview ${index + 1}`;
+        
+        const removeBtn = createSafeElement('button', 'preview-remove', '×');
+        removeBtn.setAttribute('aria-label', 'Remove image');
+        removeBtn.onclick = () => {
+            imageFiles.splice(index, 1);
+            imageDataUrls.splice(index, 1);
+            updatePreviews();
+        };
+        
+        previewContainer.appendChild(previewImage);
+        previewContainer.appendChild(removeBtn);
+        uploadPreview.appendChild(previewContainer);
+    });
 }
 
 // Tags input handler
@@ -187,27 +263,16 @@ if (uploadForm) {
         const grade = document.getElementById('grade').value.trim();
         const description = document.getElementById('description').value.trim();
 
-        if (!imageDataUrl) {
+        if (imageDataUrls.length === 0) {
             if (btnSubmit) {
                 btnSubmit.disabled = false;
                 btnSubmit.textContent = 'Upload Memory';
             }
             const messageDiv = document.getElementById('uploadMessage');
             messageDiv.className = 'error-message show';
-            messageDiv.textContent = 'Please select an image';
+            messageDiv.textContent = 'Please select at least one image';
             return;
         }
-
-        const uploadData = {
-            schoolName,
-            city,
-            country,
-            year: parseInt(year),
-            grade: grade || null,
-            description: description || null,
-            tags: selectedTags,
-            imageUrl: imageDataUrl // Store as base64 for now
-        };
 
         // Rate limiting
         const rateLimit = checkRateLimit('upload', currentUser.id, CONSTANTS.RATE_LIMIT_UPLOADS);
@@ -219,35 +284,74 @@ if (uploadForm) {
             showToast(rateLimit.message, 'error');
             return;
         }
+
+        // Upload all images
+        let successCount = 0;
+        let failCount = 0;
+        const totalImages = imageDataUrls.length;
+
+        if (btnSubmit) {
+            btnSubmit.textContent = `Uploading 0/${totalImages}...`;
+        }
+
+        for (let i = 0; i < imageDataUrls.length; i++) {
+        const isPrivate = document.getElementById('isPrivate')?.checked || false;
         
-        // Simulate upload delay for better UX
-        setTimeout(() => {
+        const uploadData = {
+            schoolName,
+            city,
+            country,
+            year: parseInt(year),
+            grade: grade || null,
+            description: description || null,
+            tags: selectedTags,
+            imageUrl: imageDataUrls[i], // Store as base64 for now
+            isPrivate: isPrivate, // Private mode flag
+            uploadedBy: currentUser.id
+        };
+
             const result = saveUpload(uploadData);
             
             if (result.success) {
-                showToast('Upload successful! Your memory has been saved. Redirecting...', 'success');
-                
-                // Reset form
-                uploadForm.reset();
-                selectedTags = [];
-                updateTagsDisplay();
-                previewImage.classList.add('hidden');
-                uploadPlaceholder.classList.remove('hidden');
-                imageFile = null;
-                imageDataUrl = null;
-
-                setTimeout(() => {
-                    window.location.href = 'search.html';
-                }, 2000);
+                successCount++;
             } else {
-                if (btnSubmit) {
-                    btnSubmit.disabled = false;
-                    btnSubmit.textContent = 'Upload Memory';
-                }
-                const errorMsg = result.errors ? result.errors.join(', ') : (result.error || 'Upload failed. Please try again.');
-                showToast(errorMsg, 'error');
+                failCount++;
+                console.error('Upload failed for image', i + 1, result);
             }
-        }, 500);
+
+            // Update progress
+            if (btnSubmit) {
+                btnSubmit.textContent = `Uploading ${i + 1}/${totalImages}...`;
+            }
+        }
+
+        // Reset form
+        uploadForm.reset();
+        selectedTags = [];
+        updateTagsDisplay();
+        uploadPreview.innerHTML = '';
+        uploadPlaceholder.classList.remove('hidden');
+        imageFiles = [];
+        imageDataUrls = [];
+
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Upload Memory';
+        }
+
+        // Show result
+        if (successCount > 0) {
+            if (failCount > 0) {
+                showToast(`${successCount} image(s) uploaded successfully, ${failCount} failed. Redirecting...`, 'info');
+            } else {
+                showToast(`${successCount} image(s) uploaded successfully! Redirecting...`, 'success');
+            }
+            setTimeout(() => {
+                window.location.href = 'search.html';
+            }, 2000);
+        } else {
+            showToast('All uploads failed. Please try again.', 'error');
+        }
     });
 }
 

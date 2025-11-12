@@ -55,6 +55,65 @@ html {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.header-search {
+    flex: 1;
+    max-width: 400px;
+    min-width: 200px;
+}
+
+.header-search-form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.header-search-input {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--white);
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.header-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.header-search-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.header-search-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    color: var(--white);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    backdrop-filter: blur(10px);
+}
+
+.header-search-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
 }
 
 .logo-section {
@@ -623,5 +682,312 @@ html {
     border-left: 4px solid var(--okra-primary);
     background: var(--okra-cream);
     color: var(--okra-dark);
+}
+
+/* PWA Install Toast */
+.pwa-install-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--okra-dark);
+    color: var(--white);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    max-width: 90%;
+    animation: slideUp 0.3s ease-out;
+}
+
+.pwa-toast-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.pwa-toast-content p {
+    margin: 0;
+    flex: 1;
+}
+
+.pwa-install-btn {
+    background: var(--okra-primary);
+    color: var(--white);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.pwa-install-btn:hover {
+    background: var(--okra-light);
+}
+
+.pwa-dismiss-btn {
+    background: transparent;
+    color: var(--white);
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 0.5rem;
+    line-height: 1;
+}
+
+.pwa-dismiss-btn:hover {
+    opacity: 0.7;
+}
+
+/* PWA Install Modal */
+.pwa-install-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10001;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.pwa-modal-content {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.pwa-modal-content h3 {
+    color: var(--okra-dark);
+    margin-bottom: 1rem;
+}
+
+.pwa-instructions {
+    background: var(--okra-cream);
+    padding: 1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+    line-height: 1.8;
+}
+
+.pwa-close-btn {
+    background: var(--okra-primary);
+    color: var(--white);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 1rem;
+    width: 100%;
+    transition: background 0.3s;
+}
+
+.pwa-close-btn:hover {
+    background: var(--okra-dark);
+}
+
+/* PWA Update Notification */
+.pwa-update-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--okra-dark);
+    color: var(--white);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    max-width: 300px;
+    animation: slideDown 0.3s ease-out;
+}
+
+.pwa-update-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.pwa-update-content p {
+    margin: 0;
+}
+
+.pwa-update-btn,
+.pwa-update-later-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: opacity 0.3s;
+}
+
+.pwa-update-btn {
+    background: var(--okra-primary);
+    color: var(--white);
+}
+
+.pwa-update-btn:hover {
+    opacity: 0.9;
+}
+
+.pwa-update-later-btn {
+    background: transparent;
+    color: var(--white);
+    border: 1px solid var(--white);
+}
+
+.pwa-update-later-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateX(-50%) translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .pwa-install-toast {
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        transform: none;
+        max-width: none;
+    }
+    
+    .pwa-toast-content {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .pwa-install-btn {
+        width: 100%;
+    }
+    
+    .pwa-update-notification {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+}
+
+/* Scroll to Top Button (Global) */
+.scroll-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    background: var(--okra-primary);
+    color: var(--white);
+    border: none;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scroll-to-top:hover {
+    background: var(--okra-dark);
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.scroll-to-top.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 0;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+}
+
+.breadcrumb-link {
+    color: var(--okra-primary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.breadcrumb-link:hover {
+    color: var(--okra-dark);
+    text-decoration: underline;
+}
+
+.breadcrumb-separator {
+    color: var(--text-light);
+    margin: 0 0.25rem;
+}
+
+.breadcrumb-current {
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .scroll-to-top {
+        bottom: 1rem;
+        right: 1rem;
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
+    
+    .header-search {
+        order: 3;
+        width: 100%;
+        max-width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .header .container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .nav {
+        order: 2;
+    }
+    
+    .breadcrumbs {
+        font-size: 0.85rem;
+        padding: 0.75rem 0;
+    }
 }
 

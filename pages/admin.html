@@ -16,6 +16,12 @@
                 </video>
                 <h1 class="site-title">YearBook</h1>
             </div>
+            <div class="header-search" id="headerSearch">
+                <form class="header-search-form" id="headerSearchForm">
+                    <input type="text" id="headerSearchInput" placeholder="Quick search..." class="header-search-input" autocomplete="off">
+                    <button type="submit" class="header-search-btn" aria-label="Search">🔍</button>
+                </form>
+            </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
                 <span></span>
                 <span></span>
@@ -34,6 +40,7 @@
 
     <main class="main-content">
         <div class="container">
+            <div id="breadcrumbs"></div>
             <div id="notAdmin" class="not-admin hidden">
                 <h2>Access Denied</h2>
                 <p>You must be an administrator to access this page.</p>

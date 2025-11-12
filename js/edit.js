@@ -54,6 +54,12 @@ function populateForm() {
     document.getElementById('description').value = currentUpload.description || '';
     document.getElementById('previewImage').src = currentUpload.imageUrl || '../assets/images/classroom.jpg';
     
+    // Set private checkbox
+    const isPrivateCheckbox = document.getElementById('isPrivate');
+    if (isPrivateCheckbox) {
+        isPrivateCheckbox.checked = currentUpload.isPrivate || false;
+    }
+    
     selectedTags = currentUpload.tags || [];
     updateTagsDisplay();
 }
@@ -111,6 +117,8 @@ function setupFormSubmission() {
         const grade = document.getElementById('grade').value.trim();
         const description = document.getElementById('description').value.trim();
         
+        const isPrivate = document.getElementById('isPrivate')?.checked || false;
+        
         const updatedData = {
             schoolName,
             city,
@@ -118,7 +126,8 @@ function setupFormSubmission() {
             year: parseInt(year),
             grade: grade || null,
             description: description || null,
-            tags: selectedTags
+            tags: selectedTags,
+            isPrivate: isPrivate
         };
         
         setTimeout(() => {

@@ -1,3 +1,23 @@
+// Load saved credentials if "Remember me" was checked
+document.addEventListener('DOMContentLoaded', () => {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    const savedPassword = localStorage.getItem('rememberedPassword');
+    const rememberMeCheckbox = document.getElementById('rememberMe');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    
+    if (savedEmail && emailInput) {
+        emailInput.value = savedEmail;
+        if (rememberMeCheckbox) {
+            rememberMeCheckbox.checked = true;
+        }
+    }
+    
+    if (savedPassword && passwordInput && rememberMeCheckbox && rememberMeCheckbox.checked) {
+        passwordInput.value = savedPassword;
+    }
+});
+
 // Login form handler
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
@@ -5,11 +25,22 @@ if (loginForm) {
         e.preventDefault();
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
+        const rememberMe = document.getElementById('rememberMe')?.checked || false;
         const messageDiv = document.getElementById('message');
 
         const result = loginUser(email, password);
         
         if (result.success) {
+            // Save credentials if "Remember me" is checked
+            if (rememberMe) {
+                localStorage.setItem('rememberedEmail', email);
+                localStorage.setItem('rememberedPassword', password);
+            } else {
+                // Remove saved credentials if unchecked
+                localStorage.removeItem('rememberedEmail');
+                localStorage.removeItem('rememberedPassword');
+            }
+            
             messageDiv.className = 'success-message show';
             messageDiv.textContent = 'Login successful! Redirecting...';
             setTimeout(() => {

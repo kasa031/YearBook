@@ -16,6 +16,12 @@
                 </video>
                 <h1 class="site-title">YearBook</h1>
             </div>
+            <div class="header-search" id="headerSearch">
+                <form class="header-search-form" id="headerSearchForm">
+                    <input type="text" id="headerSearchInput" placeholder="Quick search..." class="header-search-input" autocomplete="off">
+                    <button type="submit" class="header-search-btn" aria-label="Search">🔍</button>
+                </form>
+            </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
                 <span></span>
                 <span></span>
@@ -35,6 +41,7 @@
 
     <main class="main-content">
         <div class="container">
+            <div id="breadcrumbs"></div>
             <section class="search-section">
                 <h2>Search Yearbooks & Class Photos</h2>
                 <form id="searchForm" class="search-form-extended">
@@ -44,20 +51,26 @@
                         <input type="text" id="country" placeholder="Country" class="search-input" autocomplete="off">
                     </div>
                     <div class="search-row">
-                        <input type="number" id="year" placeholder="Year (e.g., 1995)" class="search-input" min="1900" max="2100">
+                        <input type="number" id="year" placeholder="Year (e.g., 1995)" class="search-input" min="1800" max="2100">
                         <input type="text" id="grade" placeholder="Grade/Class (e.g., 5th grade)" class="search-input">
                         <input type="text" id="tagSearch" placeholder="Tags (e.g., teacher, event)" class="search-input">
                     </div>
                     <div class="search-row">
-                        <select id="sortBy" class="search-input">
-                            <option value="date">Sort by: Newest First</option>
-                            <option value="year">Sort by: Year (Descending)</option>
-                            <option value="school">Sort by: School Name (A-Z)</option>
-                            <option value="views">Sort by: Most Viewed</option>
-                        </select>
                         <button type="submit" class="search-btn">Search</button>
                     </div>
                 </form>
+                <div class="sort-controls">
+                    <label for="sortBy" class="sort-label">Sort by:</label>
+                    <select id="sortBy" class="sort-select">
+                        <option value="date">Newest First</option>
+                        <option value="year">Year (Newest)</option>
+                        <option value="year-oldest">Year (Oldest)</option>
+                        <option value="school">School Name (A-Z)</option>
+                        <option value="school-desc">School Name (Z-A)</option>
+                        <option value="views">Most Viewed</option>
+                        <option value="location">Location</option>
+                    </select>
+                </div>
                 <div id="searchHistory" class="search-history hidden"></div>
             </section>
 

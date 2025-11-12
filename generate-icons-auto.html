@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generer App Ikoner - Auto Download</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c5f2d;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        input[type="file"] {
+            margin: 20px 0;
+            padding: 10px;
+            border: 2px dashed #2c5f2d;
+            border-radius: 4px;
+            width: 100%;
+            cursor: pointer;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #2c5f2d;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        button:hover:not(:disabled) {
+            background: #1e3f1f;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .btn-primary {
+            background: #2c5f2d;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        canvas {
+            border: 2px solid #ddd;
+            margin: 10px;
+            display: inline-block;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .icon-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .icon-card {
+            text-align: center;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .icon-card h4 {
+            margin: 10px 0 5px 0;
+            color: #2c5f2d;
+            font-size: 14px;
+        }
+        .icon-card canvas {
+            margin: 0 auto;
+            display: block;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #0c5460;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+            display: none;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2c5f2d, #28a745);
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .instructions {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            border-left: 4px solid #2c5f2d;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #2c5f2d;
+        }
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 8px 0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Generer App Ikoner for YearBook</h1>
+        <p class="subtitle">Automatisk generering og nedlasting av alle ikon-størrelser</p>
+        
+        <div class="instructions">
+            <h3>📋 Instruksjoner:</h3>
+            <ol>
+                <li><strong>Last opp kildebildet</strong> (anbefalt: <code>assets/images/b2school.png</code> eller et annet firkantet bilde)</li>
+                <li><strong>Klikk "Generer alle ikoner"</strong> for å lage alle størrelser</li>
+                <li><strong>Klikk "Last ned alle"</strong> for å laste ned alle ikonene automatisk</li>
+                <li>Lagre alle ikonene i mappen <code>assets/icons/</code></li>
+            </ol>
+        </div>
+        
+        <input type="file" id="imageInput" accept="image/*">
+        
+        <div class="button-group">
+            <button class="btn-primary" onclick="generateIcons()">Generer alle ikoner</button>
+            <button class="btn-success" id="downloadAllBtn" onclick="downloadAllIcons()" disabled>Last ned alle</button>
+            <button class="btn-secondary" onclick="clearPreview()">Tøm forhåndsvisning</button>
+        </div>
+        
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill">0%</div>
+        </div>
+        
+        <div id="status" class="status info" style="display: none;"></div>
+        
+        <div id="preview" class="icon-preview"></div>
+    </div>
+
+    <script>
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        let sourceImage = null;
+        let generatedCanvases = {};
+
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    sourceImage = new Image();
+                    sourceImage.onload = function() {
+                        showStatus('Bilde lastet: ' + sourceImage.width + ' x ' + sourceImage.height + ' px', 'success');
+                    };
+                    sourceImage.onerror = function() {
+                        showStatus('Feil ved lasting av bilde', 'warning');
+                    };
+                    sourceImage.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + type;
+            statusDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function generateIcons() {
+            if (!sourceImage) {
+                showStatus('Vennligst last opp et bilde først!', 'warning');
+                return;
+            }
+
+            const preview = document.getElementById('preview');
+            preview.innerHTML = '';
+            generatedCanvases = {};
+
+            sizes.forEach(size => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+
+                // Tegn hvit bakgrunn
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, size, size);
+
+                // Beregn størrelse for å fylle canvas mens vi beholder aspect ratio
+                const scale = Math.min(size / sourceImage.width, size / sourceImage.height);
+                const x = (size - sourceImage.width * scale) / 2;
+                const y = (size - sourceImage.height * scale) / 2;
+
+                // Tegn bildet
+                ctx.drawImage(sourceImage, x, y, sourceImage.width * scale, sourceImage.height * scale);
+
+                // Lagre canvas for nedlasting
+                generatedCanvases[size] = canvas;
+
+                // Lag en container for hvert ikon
+                const card = document.createElement('div');
+                card.className = 'icon-card';
+                
+                const title = document.createElement('h4');
+                title.textContent = `${size}x${size} px`;
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = 'Last ned';
+                downloadBtn.className = 'btn-primary';
+                downloadBtn.style.marginTop = '10px';
+                downloadBtn.style.width = '100%';
+                downloadBtn.onclick = () => downloadIcon(canvas, `icon-${size}x${size}.png`);
+
+                card.appendChild(title);
+                card.appendChild(canvas);
+                card.appendChild(downloadBtn);
+                preview.appendChild(card);
+            });
+
+            document.getElementById('downloadAllBtn').disabled = false;
+            showStatus('Alle ikoner generert! Klikk "Last ned alle" for å laste ned alle filene.', 'success');
+        }
+
+        function downloadIcon(canvas, filename) {
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+
+        function downloadAllIcons() {
+            if (Object.keys(generatedCanvases).length === 0) {
+                showStatus('Generer ikoner først!', 'warning');
+                return;
+            }
+
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            progressBar.style.display = 'block';
+
+            const sortedSizes = sizes.filter(s => generatedCanvases[s]);
+            let downloaded = 0;
+
+            sortedSizes.forEach((size, index) => {
+                setTimeout(() => {
+                    downloadIcon(generatedCanvases[size], `icon-${size}x${size}.png`);
+                    downloaded++;
+                    const percent = Math.round((downloaded / sortedSizes.length) * 100);
+                    progressFill.style.width = percent + '%';
+                    progressFill.textContent = percent + '%';
+
+                    if (downloaded === sortedSizes.length) {
+                        setTimeout(() => {
+                            progressBar.style.display = 'none';
+                            showStatus('Alle ikoner lastet ned! Lagre dem i assets/icons/ mappen.', 'success');
+                        }, 500);
+                    }
+                }, index * 300); // Delay mellom hver nedlasting for å unngå browser-blokkering
+            });
+        }
+
+        function clearPreview() {
+            document.getElementById('preview').innerHTML = '';
+            generatedCanvases = {};
+            document.getElementById('downloadAllBtn').disabled = true;
+            document.getElementById('progressBar').style.display = 'none';
+            showStatus('Forhåndsvisning tømt', 'info');
+        }
+    </script>
+</body>
+</html>
+

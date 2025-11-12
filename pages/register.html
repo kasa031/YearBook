@@ -16,6 +16,12 @@
                 </video>
                 <h1 class="site-title">YearBook</h1>
             </div>
+            <div class="header-search" id="headerSearch">
+                <form class="header-search-form" id="headerSearchForm">
+                    <input type="text" id="headerSearchInput" placeholder="Quick search..." class="header-search-input" autocomplete="off">
+                    <button type="submit" class="header-search-btn" aria-label="Search">🔍</button>
+                </form>
+            </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
                 <span></span>
                 <span></span>
@@ -31,6 +37,9 @@
     </header>
 
     <main class="main-content">
+        <div class="container">
+            <div id="breadcrumbs"></div>
+        </div>
         <div class="auth-container">
             <div class="auth-card">
                 <h2>Create Account</h2>

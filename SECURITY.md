@@ -82,6 +82,43 @@ git push origin --force --all
 
 ⚠️ **Advarsel:** Force push kan påvirke andre som har klonet repositoriet.
 
+## 4. Pre-commit Hook (Automatisk Sjekk)
+
+Et pre-commit hook er satt opp for å automatisk sjekke at ingen nøkler committes:
+
+### Hva gjør pre-commit hook?
+
+Hook-en sjekker automatisk alle filer før hver commit og:
+- ✅ Blokkerer commits som inneholder API-nøkler eller tokens
+- ✅ Sjekker at `config.js` er ignorert
+- ✅ Advarrer hvis `.gitignore` selv inneholder nøkler
+- ✅ Søker etter vanlige nøkkel-mønstre (OpenRouter, GitHub, AWS, osv.)
+
+### Hvordan fungerer det?
+
+Når du prøver å committe, vil hook-en automatisk kjøre og:
+- Hvis ingen nøkler funnes: Commit fortsetter normalt
+- Hvis nøkler funnes: Commit avbrytes med en feilmelding
+
+### Hvis hook-en blokkerer din commit
+
+1. **Fjern nøklene** fra filene du prøver å committe
+2. **Flytt nøklene til `config.js`** (som er i .gitignore)
+3. **Prøv å committe igjen**
+
+### Deaktiver hook (IKKE ANBEFALT)
+
+Hvis du absolutt må deaktivere hook-en (f.eks. for testing):
+```bash
+# Windows (PowerShell)
+git config core.hooksPath /dev/null
+
+# Linux/Mac
+git config core.hooksPath /dev/null
+```
+
+⚠️ **Advarsel:** Deaktiver aldri hook-en med mindre du er 100% sikker på at du ikke committer nøkler!
+
 ## Sjekkliste før hver commit
 
 - [ ] Har jeg sjekket `git status` for nye filer?
@@ -89,6 +126,7 @@ git push origin --force --all
 - [ ] Er `config.js` i `.gitignore`?
 - [ ] Har jeg testet at `config.js` ikke dukker opp i `git status`?
 - [ ] Har jeg fjernet alle hardkodede nøkler fra koden?
+- [ ] Har pre-commit hook-en godkjent commit-en?
 
 ## Best practices
 
@@ -97,8 +135,28 @@ git push origin --force --all
 3. **Bruk miljøvariabler** i produksjon (hvis mulig)
 4. **Roter nøkler umiddelbart** hvis de lekker ut
 5. **Ikke del screenshots** med API-nøkler synlig
+6. **Stol på pre-commit hook-en** - den er der for å beskytte deg!
+
+## ⚠️ VIKTIG: .gitignore skal ALDRI inneholde faktiske nøkler
+
+`.gitignore` filen selv skal **IKKE** inneholde faktiske nøkler eller tokens. Den skal bare inneholde **mønstre** for hvilke filer som skal ignoreres.
+
+**FEIL:**
+```
+# .gitignore
+config.js
+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  # ❌ ALDRI!
+```
+
+**RIKTIG:**
+```
+# .gitignore
+config.js  # ✅ Bare filnavnet, ikke nøkkelen!
+```
 
 ## Hjelp
 
 Hvis du er usikker, sjekk alltid `git status` før du committer!
+
+Hvis pre-commit hook-en blokkerer din commit, følg instruksjonene i feilmeldingen.
 

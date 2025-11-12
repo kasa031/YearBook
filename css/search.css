@@ -14,7 +14,48 @@
     padding: 2rem;
     border-radius: 15px;
     box-shadow: 0 3px 15px var(--shadow);
+    margin-bottom: 1rem;
+}
+
+.sort-controls {
+    background: var(--white);
+    padding: 1rem 2rem;
+    border-radius: 15px;
+    box-shadow: 0 3px 15px var(--shadow);
     margin-bottom: 3rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.sort-label {
+    color: var(--okra-dark);
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.sort-select {
+    padding: 0.6rem 1rem;
+    border: 2px solid var(--okra-light);
+    border-radius: 8px;
+    background: var(--white);
+    color: var(--text-dark);
+    font-size: 0.95rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.sort-select:focus {
+    outline: none;
+    border-color: var(--okra-primary);
+    box-shadow: 0 0 0 3px rgba(201, 122, 143, 0.1);
+}
+
+.sort-select:hover {
+    border-color: var(--okra-primary);
 }
 
 .search-row {
@@ -237,9 +278,69 @@
     font-weight: 500;
 }
 
+.history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.8rem;
+    margin: 0.25rem 0;
+    background: var(--okra-cream);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
 .history-item:hover {
     background: var(--okra-light);
     color: var(--okra-dark);
+    transform: translateX(5px);
+}
+
+.history-text {
+    flex: 1;
+}
+
+.history-delete {
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 0.5rem;
+    transition: all 0.3s ease;
+    line-height: 1;
+}
+
+.history-delete:hover {
+    color: #dc3545;
+    transform: scale(1.2);
+}
+
+.history-clear {
+    margin-top: 0.5rem;
+    padding: 0.4rem 1rem;
+    background: var(--okra-light);
+    color: var(--okra-dark);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.history-clear:hover {
+    background: var(--okra-primary);
+    color: var(--white);
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 /* Autocomplete */

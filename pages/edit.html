@@ -16,6 +16,12 @@
                 </video>
                 <h1 class="site-title">YearBook</h1>
             </div>
+            <div class="header-search" id="headerSearch">
+                <form class="header-search-form" id="headerSearchForm">
+                    <input type="text" id="headerSearchInput" placeholder="Quick search..." class="header-search-input" autocomplete="off">
+                    <button type="submit" class="header-search-btn" aria-label="Search">🔍</button>
+                </form>
+            </div>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
                 <span></span>
                 <span></span>
@@ -35,6 +41,7 @@
 
     <main class="main-content">
         <div class="container">
+            <div id="breadcrumbs"></div>
             <div class="upload-container">
                 <h2>Edit Your Memory</h2>
                 <p class="upload-description">Update the information for your uploaded post</p>
@@ -63,7 +70,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="year">Year *</label>
-                                <input type="number" id="year" required min="1900" max="2100">
+                                <input type="number" id="year" required min="1800" max="2100">
                             </div>
                             <div class="form-group">
                                 <label for="grade">Grade/Class</label>
@@ -96,6 +103,12 @@
                         <div class="form-group">
                             <label for="description">Description (optional)</label>
                             <textarea id="description" rows="4" placeholder="Add any additional information about this photo or yearbook..."></textarea>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="isPrivate">
+                                <span>🔒 Make this post private (only visible to me when logged in)</span>
+                            </label>
                         </div>
                     </div>
 
