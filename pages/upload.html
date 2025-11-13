@@ -3,7 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Upload yearbook photos and memories">
     <title>Upload - YearBook</title>
+    
+    <!-- Favicon (må være først for best kompatibilitet) -->
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/icon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/icon-96x96.png">
+    <link rel="shortcut icon" href="../assets/icons/icon-96x96.png">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2c5f2d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="YearBook">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    
+    <!-- Apple Touch Icons (iOS) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="../assets/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="../assets/icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="../assets/icons/icon-128x128.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="../assets/icons/icon-128x128.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="../assets/icons/icon-96x96.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="../assets/icons/icon-72x72.png">
+    <link rel="apple-touch-icon" href="../assets/icons/icon-192x192.png">
+    
+    <!-- Mask Icon (Safari) -->
+    <link rel="mask-icon" href="../assets/icons/icon-96x96.png" color="#2c5f2d">
+    
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/upload.css">
 </head>
@@ -22,6 +52,9 @@
                     <button type="submit" class="header-search-btn" aria-label="Search">🔍</button>
                 </form>
             </div>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                <span class="theme-icon">🌙</span>
+            </button>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
                 <span></span>
                 <span></span>
@@ -115,6 +148,31 @@
                         </div>
                     </div>
 
+                    <div class="form-section consent-section">
+                        <div class="consent-box">
+                            <h3>⚠️ Juridisk bekreftelse og samtykke</h3>
+                            <div class="consent-content">
+                                <p><strong>Før du laster opp bilder, må du bekrefte følgende:</strong></p>
+                                <ul class="consent-list">
+                                    <li>Jeg har rett til å dele disse bildene</li>
+                                    <li>Jeg har fått nødvendig samtykke fra personer på bildene (hvis påkrevd)</li>
+                                    <li>Bildene bryter ikke noen lover eller retningslinjer</li>
+                                    <li>Jeg forstår at jeg er juridisk ansvarlig for innholdet jeg laster opp</li>
+                                    <li>Jeg har lest og godtar <a href="../PRIVACY_POLICY.md" target="_blank">personvernpolicyen</a> og <a href="../TERMS_OF_SERVICE.md" target="_blank">vilkårene</a></li>
+                                </ul>
+                                <div class="form-group checkbox-group consent-checkbox">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="consentCheckbox" required>
+                                        <span><strong>Jeg bekrefter at jeg har lest og forstår informasjonen over, og at jeg har fått nødvendig samtykke før jeg laster opp bilder *</strong></span>
+                                    </label>
+                                </div>
+                                <p class="consent-warning">
+                                    <strong>Viktig:</strong> Hvis bildene inneholder personer som kan identifiseres, må du ha fått deres samtykke før opplasting. Dette gjelder spesielt for bilder av mindreårige. Se <a href="../TERMS_OF_SERVICE.md" target="_blank">vilkårene</a> for mer informasjon.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn-submit">Upload Memory</button>
                     <div id="uploadMessage"></div>
                 </form>
@@ -125,12 +183,17 @@
     <footer class="footer">
         <div class="container">
             <p>&copy; 2025 YearBook. Connecting memories across the globe.</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+                <a href="../PRIVACY_POLICY.md" target="_blank" style="color: var(--okra-primary); margin-right: 1rem;">Personvernpolicy</a>
+                <a href="../TERMS_OF_SERVICE.md" target="_blank" style="color: var(--okra-primary);">Vilkår og betingelser</a>
+            </p>
         </div>
     </footer>
 
     <script src="../js/utils.js"></script>
     <script src="../js/data.js"></script>
     <script src="../js/shared.js"></script>
+    <script src="../js/pwa.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/upload.js"></script>
 </body>

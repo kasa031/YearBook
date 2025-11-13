@@ -117,3 +117,35 @@
     display: block;
 }
 
+.auth-info {
+    text-align: center;
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.btn-secondary {
+    width: 100%;
+    background: var(--white);
+    color: var(--okra-primary);
+    border: 2px solid var(--okra-primary);
+    padding: 0.8rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-secondary:hover {
+    background: var(--okra-light);
+    color: var(--okra-dark);
+}
+

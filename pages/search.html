@@ -3,7 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Search for school yearbooks and class photos">
     <title>Search - YearBook</title>
+    
+    <!-- Favicon (må være først for best kompatibilitet) -->
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/icon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/icon-96x96.png">
+    <link rel="shortcut icon" href="../assets/icons/icon-96x96.png">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2c5f2d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="YearBook">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    
+    <!-- Apple Touch Icons (iOS) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="../assets/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="../assets/icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="../assets/icons/icon-128x128.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="../assets/icons/icon-128x128.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="../assets/icons/icon-96x96.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="../assets/icons/icon-72x72.png">
+    <link rel="apple-touch-icon" href="../assets/icons/icon-192x192.png">
+    
+    <!-- Mask Icon (Safari) -->
+    <link rel="mask-icon" href="../assets/icons/icon-96x96.png" color="#2c5f2d">
+    
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/search.css">
 </head>
@@ -22,6 +52,9 @@
                     <button type="submit" class="header-search-btn" aria-label="Search">🔍</button>
                 </form>
             </div>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                <span class="theme-icon">🌙</span>
+            </button>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
                 <span></span>
                 <span></span>
@@ -51,26 +84,40 @@
                         <input type="text" id="country" placeholder="Country" class="search-input" autocomplete="off">
                     </div>
                     <div class="search-row">
-                        <input type="number" id="year" placeholder="Year (e.g., 1995)" class="search-input" min="1800" max="2100">
+                        <input type="number" id="yearFrom" placeholder="Year from (e.g., 1990)" class="search-input" min="1800" max="2100">
+                        <input type="number" id="yearTo" placeholder="Year to (e.g., 2000)" class="search-input" min="1800" max="2100">
                         <input type="text" id="grade" placeholder="Grade/Class (e.g., 5th grade)" class="search-input">
+                    </div>
+                    <div class="search-row">
                         <input type="text" id="tagSearch" placeholder="Tags (e.g., teacher, event)" class="search-input">
+                        <input type="text" id="userSearch" placeholder="Search by username" class="search-input">
                     </div>
                     <div class="search-row">
                         <button type="submit" class="search-btn">Search</button>
                     </div>
                 </form>
-                <div class="sort-controls">
-                    <label for="sortBy" class="sort-label">Sort by:</label>
-                    <select id="sortBy" class="sort-select">
-                        <option value="date">Newest First</option>
-                        <option value="year">Year (Newest)</option>
-                        <option value="year-oldest">Year (Oldest)</option>
-                        <option value="school">School Name (A-Z)</option>
-                        <option value="school-desc">School Name (Z-A)</option>
-                        <option value="views">Most Viewed</option>
-                        <option value="location">Location</option>
-                    </select>
+                <div class="search-options">
+                    <div class="sort-controls">
+                        <label for="sortBy" class="sort-label">Sort by:</label>
+                        <select id="sortBy" class="sort-select">
+                            <option value="date">Newest First</option>
+                            <option value="year">Year (Newest)</option>
+                            <option value="year-oldest">Year (Oldest)</option>
+                            <option value="school">School Name (A-Z)</option>
+                            <option value="school-desc">School Name (Z-A)</option>
+                            <option value="views">Most Viewed</option>
+                            <option value="location">Location</option>
+                        </select>
+                    </div>
+                    <div class="filter-logic-controls">
+                        <label for="filterLogic" class="filter-logic-label">Filter logic:</label>
+                        <select id="filterLogic" class="filter-logic-select">
+                            <option value="AND">AND (alle filtre må matche)</option>
+                            <option value="OR">OR (minst ett filter må matche)</option>
+                        </select>
+                    </div>
                 </div>
+                <div id="popularSearches" class="popular-searches"></div>
                 <div id="searchHistory" class="search-history hidden"></div>
             </section>
 
@@ -90,12 +137,26 @@
     <footer class="footer">
         <div class="container">
             <p>&copy; 2025 YearBook. Connecting memories across the globe.</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+                <a href="../PRIVACY_POLICY.md" target="_blank" style="color: var(--okra-primary); margin-right: 1rem;">Personvernpolicy</a>
+                <a href="../TERMS_OF_SERVICE.md" target="_blank" style="color: var(--okra-primary);">Vilkår og betingelser</a>
+            </p>
         </div>
     </footer>
 
     <script src="../js/utils.js"></script>
     <script src="../js/data.js"></script>
+    <!-- Image Zoom Modal -->
+    <div id="imageZoomModal" class="image-zoom-modal hidden">
+        <div class="zoom-modal-overlay"></div>
+        <div class="zoom-modal-content">
+            <button class="zoom-close" id="zoomClose" aria-label="Close zoom">×</button>
+            <img id="zoomedImage" src="" alt="Zoomed image" class="zoomed-image">
+        </div>
+    </div>
+
     <script src="../js/shared.js"></script>
+    <script src="../js/pwa.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/search.js"></script>
 </body>

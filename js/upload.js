@@ -255,6 +255,26 @@ if (uploadForm) {
             }, 1500);
             return;
         }
+        
+        // Check consent checkbox
+        const consentCheckbox = document.getElementById('consentCheckbox');
+        if (!consentCheckbox || !consentCheckbox.checked) {
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Upload Memory';
+            }
+            showToast('Du må bekrefte at du har fått nødvendig samtykke før opplasting', 'error');
+            // Scroll to consent section
+            const consentSection = document.querySelector('.consent-section');
+            if (consentSection) {
+                consentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                consentSection.style.animation = 'pulse 0.5s ease-in-out';
+                setTimeout(() => {
+                    consentSection.style.animation = '';
+                }, 500);
+            }
+            return;
+        }
 
         const schoolName = document.getElementById('schoolName').value.trim();
         const city = document.getElementById('city').value.trim();

@@ -3,7 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View yearbook memory">
     <title>View Memory - YearBook</title>
+    
+    <!-- Favicon (må være først for best kompatibilitet) -->
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/icon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/icon-96x96.png">
+    <link rel="shortcut icon" href="../assets/icons/icon-96x96.png">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2c5f2d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="YearBook">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    
+    <!-- Apple Touch Icons (iOS) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="../assets/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="../assets/icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="../assets/icons/icon-128x128.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="../assets/icons/icon-128x128.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="../assets/icons/icon-96x96.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="../assets/icons/icon-72x72.png">
+    <link rel="apple-touch-icon" href="../assets/icons/icon-192x192.png">
+    
+    <!-- Mask Icon (Safari) -->
+    <link rel="mask-icon" href="../assets/icons/icon-96x96.png" color="#2c5f2d">
+    
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/view.css">
 </head>
@@ -22,6 +52,9 @@
                     <button type="submit" class="header-search-btn" aria-label="Search">🔍</button>
                 </form>
             </div>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                <span class="theme-icon">🌙</span>
+            </button>
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
                 <span></span>
                 <span></span>
@@ -48,7 +81,7 @@
                 
                 <div id="memoryView" class="memory-view hidden">
                     <div class="memory-image-section">
-                        <img id="memoryImage" src="" alt="Memory" class="memory-image">
+                        <img id="memoryImage" src="" alt="Memory" class="memory-image zoomable">
                     </div>
                     
                     <div class="memory-info-section">
@@ -74,6 +107,10 @@
                                 <strong>Views:</strong>
                                 <span id="viewCount">0</span>
                             </div>
+                            <div class="meta-item" id="likeCountItem">
+                                <strong>Likes:</strong>
+                                <span id="likeCount">0</span>
+                            </div>
                         </div>
 
                         <div id="descriptionSection" class="description-section">
@@ -86,7 +123,17 @@
                             <div id="tagsDisplay" class="tags-display"></div>
                         </div>
 
+                        <div id="commentsSection" class="comments-section">
+                            <h3>Comments <span id="commentCount" class="comment-count">(0)</span></h3>
+                            <div id="commentsList" class="comments-list"></div>
+                            <div id="commentForm" class="comment-form">
+                                <textarea id="commentText" placeholder="Write a comment..." rows="3" maxlength="1000"></textarea>
+                                <button id="submitComment" class="btn-comment">Post Comment</button>
+                            </div>
+                        </div>
+
                         <div class="actions">
+                            <button class="btn-like" id="likeBtn">👍 Like</button>
                             <a href="search.html" class="btn-secondary">Search Similar</a>
                             <button class="btn-favorite" id="favoriteBtn">🤍 Add to Favorites</button>
                             <button class="btn-download" id="downloadBtn">💾 Download Image</button>
@@ -159,12 +206,26 @@
     <footer class="footer">
         <div class="container">
             <p>&copy; 2025 YearBook. Connecting memories across the globe.</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+                <a href="../PRIVACY_POLICY.md" target="_blank" style="color: var(--okra-primary); margin-right: 1rem;">Personvernpolicy</a>
+                <a href="../TERMS_OF_SERVICE.md" target="_blank" style="color: var(--okra-primary);">Vilkår og betingelser</a>
+            </p>
         </div>
     </footer>
 
     <script src="../js/utils.js"></script>
     <script src="../js/data.js"></script>
+    <!-- Image Zoom Modal -->
+    <div id="imageZoomModal" class="image-zoom-modal hidden">
+        <div class="zoom-modal-overlay"></div>
+        <div class="zoom-modal-content">
+            <button class="zoom-close" id="zoomClose" aria-label="Close zoom">×</button>
+            <img id="zoomedImage" src="" alt="Zoomed image" class="zoomed-image">
+        </div>
+    </div>
+
     <script src="../js/shared.js"></script>
+    <script src="../js/pwa.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/view.js"></script>
 </body>

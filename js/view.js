@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     loadMemory(memoryId);
+    initImageZoom();
 });
 
 function loadMemory(id) {
@@ -86,11 +87,20 @@ function loadMemory(id) {
     if (viewCountElement) {
         viewCountElement.textContent = `${viewCount} view${viewCount !== 1 ? 's' : ''}`;
     }
+    
+    // Display like count
+    const likeCount = memory.likeCount || 0;
+    const likeCountElement = document.getElementById('likeCount');
+    if (likeCountElement) {
+        likeCountElement.textContent = `${likeCount} like${likeCount !== 1 ? 's' : ''}`;
+    }
 
     loading.classList.add('hidden');
     memoryView.classList.remove('hidden');
     
     // Initialize all functionalities
+    initLikeFunctionality(memoryId);
+    initCommentFunctionality(memoryId);
     initReportFunctionality(memoryId);
     initFavoriteFunctionality(memoryId);
     initDownloadFunctionality(memoryId);
@@ -178,6 +188,180 @@ function initReportFunctionality(uploadId) {
             }
         });
     }
+}
+
+// Like functionality
+function initLikeFunctionality(uploadId) {
+    const likeBtn = document.getElementById('likeBtn');
+    if (!likeBtn) return;
+    
+    const currentUser = safeParseJSON('currentUser', null);
+    const isLikedByUser = currentUser ? isLiked(uploadId, currentUser.id) : false;
+    
+    updateLikeButton(likeBtn, isLikedByUser);
+    
+    likeBtn.addEventListener('click', () => {
+        if (!currentUser) {
+            showToast('Please log in to like posts', 'error');
+            return;
+        }
+        
+        const result = toggleLike(uploadId, currentUser.id);
+        
+        if (result.success) {
+            updateLikeButton(likeBtn, result.liked);
+            
+            // Update like count display
+            const likeCountElement = document.getElementById('likeCount');
+            if (likeCountElement) {
+                const count = result.likeCount || 0;
+                likeCountElement.textContent = `${count} like${count !== 1 ? 's' : ''}`;
+            }
+            
+            showToast(result.liked ? 'Post liked!' : 'Post unliked', 'success');
+        } else {
+            showToast(result.message || 'Failed to like post', 'error');
+        }
+    });
+}
+
+function updateLikeButton(btn, isLiked) {
+    if (isLiked) {
+        btn.textContent = '👍 Liked';
+        btn.classList.add('liked');
+    } else {
+        btn.textContent = '👍 Like';
+        btn.classList.remove('liked');
+    }
+}
+
+// Comment functionality
+function initCommentFunctionality(uploadId) {
+    const commentsSection = document.getElementById('commentsSection');
+    const commentsList = document.getElementById('commentsList');
+    const commentForm = document.getElementById('commentForm');
+    const commentText = document.getElementById('commentText');
+    const submitComment = document.getElementById('submitComment');
+    const commentCount = document.getElementById('commentCount');
+    
+    if (!commentsSection || !commentsList || !commentForm) return;
+    
+    // Load and display comments
+    loadComments(uploadId);
+    
+    // Handle comment submission
+    if (submitComment && commentText) {
+        submitComment.addEventListener('click', () => {
+            const text = commentText.value.trim();
+            
+            if (!text) {
+                showToast('Please enter a comment', 'error');
+                return;
+            }
+            
+            const result = addComment(uploadId, text);
+            
+            if (result.success) {
+                commentText.value = '';
+                loadComments(uploadId);
+                showToast('Comment posted!', 'success');
+            } else {
+                showToast(result.message || 'Failed to post comment', 'error');
+            }
+        });
+        
+        // Allow Enter key to submit (Shift+Enter for new line)
+        commentText.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                submitComment.click();
+            }
+        });
+    }
+    
+    // Check if user is logged in
+    const currentUser = safeParseJSON('currentUser', null);
+    if (!currentUser) {
+        if (commentForm) {
+            commentForm.innerHTML = '<p class="comment-login-prompt">Please <a href="login.html">log in</a> to comment</p>';
+        }
+    }
+}
+
+function loadComments(uploadId) {
+    const commentsList = document.getElementById('commentsList');
+    const commentCount = document.getElementById('commentCount');
+    
+    if (!commentsList) return;
+    
+    const comments = getComments(uploadId);
+    
+    // Update comment count
+    if (commentCount) {
+        commentCount.textContent = `(${comments.length})`;
+    }
+    
+    // Clear existing comments
+    commentsList.innerHTML = '';
+    
+    if (comments.length === 0) {
+        commentsList.innerHTML = '<p class="no-comments">No comments yet. Be the first to comment!</p>';
+        return;
+    }
+    
+    // Display each comment
+    comments.forEach(comment => {
+        const commentElement = createCommentElement(comment);
+        commentsList.appendChild(commentElement);
+    });
+}
+
+function createCommentElement(comment) {
+    const currentUser = safeParseJSON('currentUser', null);
+    const canDelete = currentUser && (comment.userId === currentUser.id || isAdmin(currentUser));
+    
+    const commentDiv = document.createElement('div');
+    commentDiv.className = 'comment-item';
+    commentDiv.setAttribute('data-comment-id', comment.id);
+    
+    const date = new Date(comment.createdAt);
+    const formattedDate = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    commentDiv.innerHTML = `
+        <div class="comment-header">
+            <strong class="comment-username">${escapeHTML(comment.username)}</strong>
+            <span class="comment-date">${formattedDate}</span>
+        </div>
+        <div class="comment-text">${comment.text}</div>
+        ${canDelete ? `<button class="btn-delete-comment" data-comment-id="${comment.id}" aria-label="Delete comment">🗑️</button>` : ''}
+    `;
+    
+    // Add delete functionality
+    if (canDelete) {
+        const deleteBtn = commentDiv.querySelector('.btn-delete-comment');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to delete this comment?')) {
+                    const result = deleteComment(comment.id);
+                    if (result.success) {
+                        const uploadId = comment.uploadId;
+                        loadComments(uploadId);
+                        showToast('Comment deleted', 'success');
+                    } else {
+                        showToast(result.message || 'Failed to delete comment', 'error');
+                    }
+                }
+            });
+        }
+    }
+    
+    return commentDiv;
 }
 
 // Favorite functionality
@@ -353,6 +537,60 @@ function downloadImage(imageUrl, filename) {
 }
 
 // Delete confirmation modal
+// Image zoom functionality
+function initImageZoom() {
+    const memoryImage = document.getElementById('memoryImage');
+    const zoomModal = document.getElementById('imageZoomModal');
+    const zoomedImage = document.getElementById('zoomedImage');
+    const zoomClose = document.getElementById('zoomClose');
+    const zoomOverlay = document.querySelector('.zoom-modal-overlay');
+    
+    if (!memoryImage || !zoomModal || !zoomedImage) return;
+    
+    // Open zoom on image click
+    memoryImage.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openImageZoom(memoryImage.src, memoryImage.alt);
+    });
+    
+    // Close zoom handlers
+    if (zoomClose) {
+        zoomClose.addEventListener('click', closeImageZoom);
+    }
+    
+    if (zoomOverlay) {
+        zoomOverlay.addEventListener('click', closeImageZoom);
+    }
+    
+    // Close on ESC key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !zoomModal.classList.contains('hidden')) {
+            closeImageZoom();
+        }
+    });
+}
+
+function openImageZoom(imageSrc, imageAlt) {
+    const zoomModal = document.getElementById('imageZoomModal');
+    const zoomedImage = document.getElementById('zoomedImage');
+    
+    if (!zoomModal || !zoomedImage) return;
+    
+    zoomedImage.src = imageSrc;
+    zoomedImage.alt = imageAlt || 'Zoomed image';
+    zoomModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageZoom() {
+    const zoomModal = document.getElementById('imageZoomModal');
+    
+    if (!zoomModal) return;
+    
+    zoomModal.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
 function showDeleteConfirmModal(uploadId) {
     const modal = document.getElementById('deleteConfirmModal');
     const cancelBtn = document.getElementById('cancelDelete');

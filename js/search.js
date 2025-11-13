@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const schoolInput = document.getElementById('schoolName');
     const cityInput = document.getElementById('city');
     const countryInput = document.getElementById('country');
-    const yearInput = document.getElementById('year');
     const gradeInput = document.getElementById('grade');
 
     // Handle quick search query from header
@@ -35,6 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Load search history
     loadSearchHistory();
+    
+    // Load popular searches
+    loadPopularSearches();
     
     // Setup autocomplete
     setupAutocomplete();
@@ -81,17 +83,25 @@ function performSearch() {
         const schoolName = document.getElementById('schoolName').value.trim();
         const city = document.getElementById('city').value.trim();
         const country = document.getElementById('country').value.trim();
-        const year = document.getElementById('year').value;
+        const yearFrom = document.getElementById('yearFrom')?.value;
+        const yearTo = document.getElementById('yearTo')?.value;
         const grade = document.getElementById('grade').value.trim();
         const tagSearch = document.getElementById('tagSearch')?.value.trim() || '';
+        const userSearch = document.getElementById('userSearch')?.value.trim() || '';
 
         const filters = {};
         if (schoolName) filters.school = schoolName;
         if (city) filters.city = city;
         if (country) filters.country = country;
-        if (year) filters.year = parseInt(year);
+        if (yearFrom) filters.yearFrom = parseInt(yearFrom);
+        if (yearTo) filters.yearTo = parseInt(yearTo);
         if (grade) filters.grade = grade;
         if (tagSearch) filters.tags = tagSearch;
+        if (userSearch) filters.username = userSearch;
+        
+        // Get filter logic (AND or OR)
+        const filterLogic = document.getElementById('filterLogic')?.value || 'AND';
+        filters.filterLogic = filterLogic;
 
         // Save search history
         saveSearchHistory(filters);
@@ -236,9 +246,15 @@ function createResultCard(result) {
     const img = document.createElement('img');
     img.src = imageUrl;
     img.alt = schoolName;
-    img.className = 'result-image';
+    img.className = 'result-image zoomable';
     img.loading = 'lazy';
     img.onerror = function() { this.src = '../assets/images/classroom.jpg'; };
+    
+    // Prevent card click when clicking image (for zoom)
+    img.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openImageZoom(imageUrl, schoolName);
+    });
     
     const overlay = createSafeElement('div', 'result-overlay');
     const viewText = createSafeElement('span', 'view-text', 'View Details');

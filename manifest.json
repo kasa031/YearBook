@@ -2,7 +2,7 @@
   "name": "YearBook - Find Your School Memories",
   "short_name": "YearBook",
   "description": "Search for school yearbooks and class photos from around the world",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2c5f2d",

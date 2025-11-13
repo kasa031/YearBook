@@ -38,41 +38,51 @@
 - [x] ✅ **Sortering av resultater** - Sorter etter dato, år, skolenavn, visninger, lokasjon (7 alternativer)
 - [x] ✅ **Paginering** - Del opp søkeresultater i sider (12 per side, allerede implementert)
 - [x] ✅ **Innlogging med "Husk meg"** - Lagre innloggingsstatus (implementert)
-- [ ] **Glemt passord** - Funksjon for å nullstille passord
+- [x] ✅ **Innloggingsfeil fikset** - Forbedret e-post normalisering og passord-sammenligning (fikset "Invalid credentials" problem)
+- [x] ✅ **Glemt passord** - Funksjon for å nullstille passord (forgot-password.html, resetPassword og checkEmailExists implementert)
 
 ### Funksjonalitet
-- [ ] **Kommentarer på poster** - La brukere kommentere på poster
-- [ ] **Like/Favoritt på poster** - Enkel "lik" funksjon (favoritter eksisterer, men ikke "like")
+- [x] ✅ **Kommentarer på poster** - La brukere kommentere på poster (addComment, getComments, deleteComment implementert med UI i view.html)
+- [x] ✅ **Like/Favoritt på poster** - Enkel "lik" funksjon (toggleLike, isLiked, getLikeCount implementert med like-knapp i view.html)
 - [x] ✅ **Del poster** - Mulighet til å dele poster via link (sharePost og copyPostLink implementert)
 - [x] ✅ **Import data** - Importer poster fra fil (importUserData implementert i backup.js)
 - [x] ✅ **Bulk upload** - Last opp flere bilder samtidig (støtter opptil 10 bilder med preview og progress)
 
 ### Søk og filter
-- [ ] **Avansert søk** - Kombinér flere filtre med AND/OR-logikk
+- [x] ✅ **Avansert søk** - Kombinér flere filtre med AND/OR-logikk (filterLogic parameter og UI implementert)
 - [x] ✅ **Søk med tags** - Filtrer direkte på tags (tagSearch input og filters.tags implementert)
-- [ ] **Autocomplete UI** - Vis autocomplete-forslag i søkefeltet (infrastruktur eksisterer i data.js)
-- [ ] **Populære søk** - Vis mest søkte termer
-- [ ] **Søk etter bruker** - Finn alle poster fra en spesifikk bruker
-- [ ] **Dato-range filter** - Søk mellom to årstall
+- [x] ✅ **Autocomplete UI** - Vis autocomplete-forslag i søkefeltet (implementert i search.js med dropdown)
+- [x] ✅ **Populære søk** - Vis mest søkte termer (getPopularSearches, updatePopularSearches implementert med UI)
+- [x] ✅ **Søk etter bruker** - Finn alle poster fra en spesifikk bruker (userSearch felt og filters.username implementert)
+- [x] ✅ **Dato-range filter** - Søk mellom to årstall (yearFrom og yearTo felter implementert)
 
 ### Admin-forbedringer
-- [ ] **Statistikk-dashboard** - Oversikt over antall poster, brukere, rapporter
-- [ ] **Brukeradministrasjon** - Admin kan se alle brukere og moderere
-- [ ] **Masse-handlinger** - Slett/flagg flere poster samtidig
-- [ ] **Rapport-eksport** - Eksporter rapporter til CSV
-- [ ] **E-post varsler** - Send e-post til admin ved nye rapporter
-- [ ] **Admin-roller** - Flere nivåer av admin (moderator, superadmin)
+- [x] ✅ **Statistikk-dashboard** - Oversikt over antall poster, brukere, rapporter (implementert med dashboard-tab, stat-kort, topp-brukere og topp-poster)
+- [x] ✅ **Brukeradministrasjon** - Admin kan se alle brukere og moderere (implementert med users-tab, søk, statistikk og slett-funksjonalitet)
+- [x] ✅ **Masse-handlinger** - Slett/flagg flere poster samtidig (implementert med checkboxes, select all, og bulk action buttons)
+- [x] ✅ **Rapport-eksport** - Eksporter rapporter til CSV (implementert med CSV-generering, Excel-kompatibilitet og automatisk nedlasting)
+- [x] ✅ **E-post varsler** - Send e-post til admin ved nye rapporter (implementert med notifikasjonssystem, badge-indikator, dropdown og mailto-link)
+- [x] ✅ **Admin-roller** - Flere nivåer av admin (moderator, admin, superadmin) (implementert med rollebasert tilgangskontroll, rollebadges og rolleadministrasjon)
+
+### Juridiske forbedringer
+- [x] ✅ **Personvernpolicy og vilkår** - Personvernpolicy, vilkår og betingelser, og juridisk guide implementert
+- [x] ✅ **Consent-checkbox ved opplasting** - Påkrevd bekreftelse om samtykke før opplasting
+- [ ] **Juridisk gjennomgang** - Få en jurist til å gjennomgå dokumentene (anbefalt)
+- [ ] **Oversettelse til engelsk** - Oversett personvernpolicy og vilkår til engelsk for internasjonal bruk
+- [ ] **Kontaktinformasjon for personvern** - Legg til e-postadresse for personvernhenvendelser
+- [ ] **Cookie-banner** - Hvis cookies brukes (bortsett fra LocalStorage)
+- [ ] **Databehandleravtale** - Hvis tredjeparts-tjenester brukes
 
 ---
 
 ## 🚀 Middels prioritet
 
 ### Design og UI
-- [ ] **Mørk modus** - Toggle for mørk/lys tema
+- [x] ✅ **Mørk modus** - Toggle for mørk/lys tema (implementert med CSS-variabler, toggle-knapp i header, og LocalStorage-lagring)
 - [ ] **Tilpassbar fargepalett** - La brukere velge sin egen farge
 - [ ] **Visningstilstander** - Grid/liste-visning for søkeresultater
 - [ ] **Bildeslideshow** - Vis flere bilder i samme post som slideshow
-- [ ] **Zoom på bilder** - Klikk for å se bilder i full størrelse
+- [x] ✅ **Zoom på bilder** - Klikk for å se bilder i full størrelse (implementert med lightbox-modal, zoom-effekt, og støtte for ESC-tast)
 - [ ] **Laster indikator** - Bedre loading states overalt
 - [ ] **Toast notifications** - Bedre varsling i stedet for alert() (showToast eksisterer, men ikke konsistent brukt)
 - [ ] **Forbedret error-handling** - Mer informative feilmeldinger
